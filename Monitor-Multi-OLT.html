@@ -150,47 +150,83 @@ function limparTudo() {
 function translateStatus(raw) {
     if (!raw) return 'OFF';
     const s = raw.toLowerCase().trim();
-    if (['up', 'online', 'working', 'enable'].includes(s)) return 'UP';
+    if (['up', 'online', 'working', 'enable', 'ready'].includes(s)) return 'UP';
     return 'DOWN';
 }
 
 function formatSignal(val) {
-    if (!val || val === "-" || val === "invalid" || val === "1") return "0.00";
+    if (!val || val === "-" || val === "invalid" || val === "1" || val.toUpperCase() === "N/A") return "0.00";
     return val;
 }
 
 function parseLog(text) {
     if(!text.trim()) return new Map();
-    // Remove caracteres de escape de terminal como [7m, [27m, [8D, etc para não quebrar o regex
-    const cleanText = text.replace(/\[[0-9;]*[mK]/g, '').replace(/--More--/g, '');
+    const cleanText = text.replace(/ \[[0-9;]*[mK]/g, '').replace(/--More--/g, '');
     const lines = cleanText.split('\n').map(l => l.trim()).filter(l => l !== "");
+    
+    const zteAccumulator = new Map();
     const dataMap = new Map();
     
+    // Regex Patterns
     const nokiaHoriz = /(\d+\/\d+\/\d+\/\d+)\s+([\d\/]+)\s+([A-Z0-9:]+)\s+.*?\s+(up|down)\s+([-\d.]+)?/i;
-    const zteRegex = /(\d+\/\d+\/\d+[:\/]\d+)\s+.*?(working|los|dyinggasp|offline|down|up)\s*([-\d.]+)?/i;
     const huaweiData = /(\d+\/\s*\d+\/\d+)\s+(\d+)\s+([A-F0-9]{12,16})\s+.*?(online|offline|down|up)\s*([-\d.]+)?/i;
-    // Nova Regex para Datacom (Captura Itf, ONU ID, Serial e State)
     const datacomRegex = /^(\d+\/\d+\/\d+)\s+(\d+)\s+([A-Z0-9]{12})\s+(Up|Down)/i;
     
+    // ZTE Multi-Command Patterns
+    const zteStateRegex = /^(?:gpon-onu_)?(\d+\/\d+\/\d+[:\/]\d+)\s+(?:enable|disable)\s+(?:enable|disable)\s+(working|los|dyinggasp|offline|down|up)/i;
+    const ztePowerRegex = /^(?:gpon-onu_)?(\d+\/\d+\/\d+[:\/]\d+)\s+([-\d.]+)\(dbm\)/i;
+    const zteSerialRegex = /^(?:gpon-onu_)?(\d+\/\d+\/\d+[:\/]\d+)\s+.*SN:(ZTE[A-Z0-9]+)/i;
+
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
-        
-        if (line.match(/^[A-Z0-9]{4}:[A-F0-9]{8}$/i)) {
+        let m;
+
+        // ZTE logic - Agrupa por Índice antes de converter para Serial
+        if (m = line.match(zteStateRegex)) {
+            const id = m[1].replace(':', '/'); // Normaliza separador
+            const obj = zteAccumulator.get(id) || { id: id, type: 'ZTE', status: 'OFF', raw: 'OFF', signal: '0.00', serial: id };
+            obj.status = translateStatus(m[2]);
+            obj.raw = m[2];
+            zteAccumulator.set(id, obj);
+        } 
+        else if (m = line.match(ztePowerRegex)) {
+            const id = m[1].replace(':', '/');
+            const obj = zteAccumulator.get(id) || { id: id, type: 'ZTE', status: 'OFF', raw: 'OFF', signal: '0.00', serial: id };
+            obj.signal = formatSignal(m[2]);
+            zteAccumulator.set(id, obj);
+        }
+        else if (m = line.match(zteSerialRegex)) {
+            const id = m[1].replace(':', '/');
+            const obj = zteAccumulator.get(id) || { id: id, type: 'ZTE', status: 'OFF', raw: 'OFF', signal: '0.00', serial: id };
+            obj.serial = m[2];
+            zteAccumulator.set(id, obj);
+        }
+        // Datacom
+        else if (m = line.match(datacomRegex)) {
+            dataMap.set(m[3].trim(), { id: m[1] + " ID:" + m[2], status: translateStatus(m[4]), raw: m[4], type: 'DATACOM', signal: "0.00" });
+        }
+        // Nokia Horizontal
+        else if (m = line.match(nokiaHoriz)) {
+            dataMap.set(m[3].trim(), { id: m[2], status: translateStatus(m[4]), raw: m[4], type: 'NOKIA', signal: formatSignal(m[5]) });
+        }
+        // Huawei
+        else if (m = line.match(huaweiData)) {
+            dataMap.set(m[3].trim(), { id: m[1]+":"+m[2], status: translateStatus(m[4]), raw: m[4], type: 'HUAWEI', signal: formatSignal(m[5]) });
+        }
+        // Nokia Vertical
+        else if (line.match(/^[A-Z0-9]{4}:[A-F0-9]{8}$/i)) {
             let id = lines[i-1] || "N/A";
             let status = lines[i+2] || "down";
             let signal = lines[i+3] || "-";
             dataMap.set(line, { id, status: translateStatus(status), raw: status, type: 'NOKIA', signal: formatSignal(signal) });
-            continue;
         }
-        
-        let m;
-        if (m = line.match(datacomRegex)) {
-            dataMap.set(m[3].trim(), { id: m[1] + " ID:" + m[2], status: translateStatus(m[4]), raw: m[4], type: 'DATACOM', signal: "0.00" });
-        }
-        else if (m = line.match(nokiaHoriz)) dataMap.set(m[3].trim(), { id: m[2], status: translateStatus(m[4]), raw: m[4], type: 'NOKIA', signal: formatSignal(m[5]) });
-        else if (m = line.match(zteRegex)) dataMap.set(m[1].trim(), { id: m[1], status: translateStatus(m[2]), raw: m[2], type: 'ZTE', signal: formatSignal(m[3]) });
-        else if (m = line.match(huaweiData)) dataMap.set(m[3].trim(), { id: m[1]+":"+m[2], status: translateStatus(m[4]), raw: m[4], type: 'HUAWEI', signal: formatSignal(m[5]) });
     }
+
+    // Consolida ZTE no dataMap final
+    zteAccumulator.forEach((val) => {
+        dataMap.set(val.serial, val);
+    });
+
     return dataMap;
 }
 
@@ -201,7 +237,9 @@ function compareData() {
     const container = document.getElementById('tableContainer');
     if (!val1 || !val2) return;
 
-    const db1 = parseLog(val1); const db2 = parseLog(val2);
+    const db1 = parseLog(val1); 
+    const db2 = parseLog(val2);
+    
     let html = `<table><thead><tr>
         <th>ID</th><th>Equipamento</th>
         <th style="text-align:center;">Log Referência </th><th style="text-align:center;">Atual</th>
@@ -214,14 +252,24 @@ function compareData() {
     let results = [], falls = 0, signalAlerts = 0;
 
     allKeys.forEach(key => {
-        const d1 = db1.get(key); const d2 = db2.get(key);
-        const s1Norm = d1 ? d1.status : 'OFF'; const s2Norm = d2 ? d2.status : 'OFF';
-        const sig1 = d1?.signal || "0.00"; const sig2 = d2?.signal || "0.00";
+        const d1 = db1.get(key); 
+        const d2 = db2.get(key);
+        const s1Norm = d1 ? d1.status : 'OFF'; 
+        const s2Norm = d2 ? d2.status : 'OFF';
+        const sig1 = d1?.signal || "0.00"; 
+        const sig2 = d2?.signal || "0.00";
         
         let priority = 0, msg = '<span style="opacity:0.4;">Sem alteração</span>', rowClass = '', sigClass = '';
 
-        if (s1Norm === 'UP' && s2Norm === 'DOWN') { rowClass = 'row-caiu'; msg = '<span class="txt-caiu">❌ QUEDA</span>'; priority = 3; falls++; }
-        else if (s1Norm === 'DOWN' && s2Norm === 'UP') { msg = '<span style="color:#2ecc71; font-weight:bold; font-size:12px;">✅ VOLTOU</span>'; priority = 2; }
+        if (s1Norm === 'UP' && s2Norm === 'DOWN') { 
+            rowClass = 'row-caiu'; 
+            msg = '<span class="txt-caiu">❌ QUEDA</span>'; 
+            priority = 3; falls++; 
+        }
+        else if (s1Norm === 'DOWN' && s2Norm === 'UP') { 
+            msg = '<span style="color:#2ecc71; font-weight:bold; font-size:12px;">✅ VOLTOU</span>'; 
+            priority = 2; 
+        }
 
         if (sig1 !== "0.00" && sig2 !== "0.00") {
             const diff = Math.abs(parseFloat(sig1) - parseFloat(sig2));
@@ -233,14 +281,22 @@ function compareData() {
             }
         }
 
-        results.push({ id: d2?.id || d1?.id, key, type: d2?.type || d1?.type, s1Raw: d1?.raw || 'OFF', s2Raw: d2?.raw || 'OFF', s1Norm, s2Norm, sig1, sig2, sigClass, rowClass, msg, priority });
+        results.push({ 
+            id: d2?.id || d1?.id, 
+            key, 
+            type: d2?.type || d1?.type, 
+            s1Raw: d1?.raw || 'OFF', 
+            s2Raw: d2?.raw || 'OFF', 
+            s1Norm, s2Norm, sig1, sig2, sigClass, rowClass, msg, priority 
+        });
     });
 
     if (falls > 0 || signalAlerts > 0) playAlarm();
     results.sort((a, b) => b.priority - a.priority);
 
     results.forEach(r => {
-        const tr = document.createElement('tr'); if(r.rowClass) tr.className = r.rowClass;
+        const tr = document.createElement('tr'); 
+        if(r.rowClass) tr.className = r.rowClass;
         
         let colorClass1 = r.s1Norm === 'UP' ? 'st-up' : (r.s1Norm === 'OFF' ? 'st-off' : 'st-down');
         let colorClass2 = r.s2Norm === 'UP' ? 'st-up' : (r.s2Norm === 'OFF' ? 'st-off' : 'st-down');
