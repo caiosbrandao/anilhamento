@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Registro de Atendimento - Pro</title>
+    <title>Registro de Atendimento - Pro v2.0</title>
     <style>
         :root {
             --bg-body: #0d1117; --bg-container: #161b22; --text-main: #c9d1d9;
@@ -25,13 +25,11 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* TOASTS */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
         .toast { background: var(--accent-green); color: white; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 13px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; animation: slideIn 0.5s ease, fadeOut 0.5s ease 2.5s forwards; border-left: 5px solid #fff; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
 
-        /* MODAL DE CONFIRMAÇÃO */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 10000; }
         .modal-card { background: var(--bg-container); border: 1px solid var(--accent-red); border-radius: 15px; padding: 35px; width: 420px; text-align: center; box-shadow: 0 0 40px rgba(214, 48, 49, 0.3); animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -64,7 +62,7 @@
         .btn-clear { background: #485e74; color: white; width: 60px; border: none; border-radius: 6px; cursor: pointer; }
         
         .script-output { background: #011627; color: #addb67; padding: 15px; border-radius: 8px; font-family: 'Consolas', monospace; display: none; white-space: pre-wrap; border-left: 4px solid var(--accent-green); font-size: 12px; margin-top: 15px; }
-        .sat-output { border-left: 4px solid var(--accent-red); color: #ff9ff3; }
+        .sat-output { border-left: 4px solid var(--accent-red); color: #ff9ff3; line-height: 1.4; }
 
         .history-table { width: 100%; border-collapse: collapse; font-size: 11px; }
         .history-table th, .history-table td { padding: 12px; border: 1px solid var(--border-color); text-align: left; }
@@ -200,23 +198,23 @@ function adicionarNovaAba() {
             <h3 style="color:var(--accent-red); margin-top:0;">🚫 RELATÓRIO DE CTO SATURADA</h3>
             <div class="grid-main">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div class="input-group"><label>BKO</label><input type="text" class="sat_bko" value="CAIO BRANDÃO"></div>
+                    <div class="input-group"><label>BKO RESPONSÁVEL</label><input type="text" class="sat_bko" value="CAIO BRANDÃO"></div>
                     <div class="input-group"><label>DATA</label><input type="date" class="sat_data"></div>
-                    <div class="input-group"><label>CIDADE</label><input type="text" class="sat_cidade" id="sat_cidade_${id}"></div>
-                    <div class="input-group"><label>CLIENTE/OS</label><input type="text" class="sat_cliente"></div>
-                    <div class="input-group"><label>CTO ATUAL</label><input type="text" class="sat_ctovald"></div>
-                    <div class="input-group"><label>COORD. CLIENTE</label><input type="text" class="sat_loc_cli"></div>
-                    <div class="input-group" style="grid-column: span 2"><label>MOTIVO/OBSERVAÇÃO</label><textarea class="sat_obs"></textarea></div>
+                    <div class="input-group"><label>CIDADE/UF</label><input type="text" class="sat_cidade"></div>
+                    <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="sat_cliente"></div>
+                    <div class="input-group"><label>CTO SATURADA</label><input type="text" class="sat_ctovald"></div>
+                    <div class="input-group"><label>COORDENADAS CLIENTE</label><input type="text" class="sat_loc_cli"></div>
+                    <div class="input-group" style="grid-column: span 2"><label>MOTIVO / PARECER TÉCNICO</label><textarea class="sat_obs" placeholder="DESCREVA A ANÁLISE FEITA NO LOCAL..."></textarea></div>
                 </div>
                 <div>
-                    <div class="input-group"><label>CTO'S ANALISADAS NO RAIO</label><input type="text" class="sat_ctos_verif"></div>
+                    <div class="input-group"><label>CTO'S ANALISADAS NO RAIO (DISTÂNCIA)</label><input type="text" class="sat_ctos_verif" placeholder="EX: CTO 01, 05 E 09"></div>
                     <div class="input-group"><label>CTO INDICADA PARA AMPLIAÇÃO</label><input type="text" class="sat_cto_amp"></div>
                     <div class="input-group"><label>COORDENADAS DA INDICADA</label><input type="text" class="sat_loc_cto_ordem"></div>
-                    <button class="btn-primary" style="background: var(--accent-orange); width:100%; margin-top:25px;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO</button>
+                    <button class="btn-primary" style="background: var(--accent-orange); width:100%; margin-top:25px;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO TÉCNICO</button>
                 </div>
             </div>
             <div class="script-output sat-output"></div>
-            <button class="btn-copy" onclick="copiarScript(this)">📋 COPIAR RELATÓRIO</button>
+            <button class="btn-copy" onclick="copiarScript(this)">📋 COPIAR RELATÓRIO PROFISSIONAL</button>
         </div>
     </div>`;
     
@@ -290,6 +288,38 @@ function gerarScript(id) {
     aba.querySelector('.btn-finish').style.display = 'block';
 }
 
+function gerarScriptSaturada(id) {
+    const aba = document.getElementById(id);
+    const get = (c) => aba.querySelector('.'+c).value.toUpperCase();
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+
+    let s = `--- ⚠️ RELATÓRIO TÉCNICO: ESGOTAMENTO DE FACILIDADES (CTO) ---
+[DADOS DO BACKOFFICE]
+RESPONSÁVEL: ${get('sat_bko')}
+DATA DO REGISTRO: ${dataAtual}
+CIDADE/UF: ${get('sat_cidade')}
+
+[DADOS DO ATENDIMENTO]
+ORDEM DE SERVIÇO (OS): ${get('sat_cliente')}
+CTO ORIGEM (SATURADA): ${get('sat_ctovald')}
+COORDENADAS DO CLIENTE: ${get('sat_loc_cli')}
+
+[ANÁLISE DE CAMPO]
+STATUS: 100% DE OCUPAÇÃO (SEM PORTAS DISPONÍVEIS)
+RAIO DE VIABILIDADE: ${get('sat_ctos_verif')} (ANALISADAS)
+PARECER TÉCNICO: ${get('sat_obs')}
+
+[SUGESTÃO DE PROJETO/AMPLIAÇÃO]
+CTO INDICADA: ${get('sat_cto_amp')}
+COORDENADAS PARA LANÇAMENTO: ${get('sat_loc_cto_ordem')}
+-------------------------------------------------------`;
+
+    const out = aba.querySelector('.sat-output');
+    out.innerText = s;
+    out.style.display = 'block';
+    out.nextElementSibling.style.display = 'block';
+}
+
 function salvarAtendimento(id) {
     let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const d = dadosTemporarios[id];
@@ -347,16 +377,6 @@ function editarRegistro(id) {
 }
 
 function toggleSaturada(id) { document.getElementById(`sat-form-${id}`).classList.toggle('active'); }
-
-function gerarScriptSaturada(id) {
-    const aba = document.getElementById(id);
-    const get = (c) => aba.querySelector('.'+c).value.toUpperCase();
-    let s = `❌ [CTO SATURADA] ❌\nBKO: ${get('sat_bko')}\nDATA: ${get('sat_data')}\nCIDADE: ${get('sat_cidade')}\nOS: ${get('sat_cliente')}\nCTO: ${get('sat_ctovald')}\nCOORD: ${get('sat_loc_cli')}\nMOTIVO: ${get('sat_obs')}\n\nSUGESTÃO: ${get('sat_cto_amp')} em ${get('sat_loc_cto_ordem')}`;
-    const out = aba.querySelector('.sat-output');
-    out.innerText = s;
-    out.style.display = 'block';
-    out.nextElementSibling.style.display = 'block';
-}
 
 function copiarScript(btn) { navigator.clipboard.writeText(btn.previousElementSibling.innerText).then(() => showToast("COPIADO!")); }
 
