@@ -162,10 +162,10 @@ function adicionarNovaAba() {
                             <option value="8 PORTAS">8 PORTAS</option>
                         </select>
                     </div>
-                    <div class="input-group"><label>PORTA RESERVADA</label><select class="at_plib_id"></select></div>
-                    <div class="input-group"><label>ID PORTA RESERVADA</label><input type="text" class="at_plib_num"></div>
+                    <div class="input-group"><label>PORTA UTILIZADA</label><select class="at_plib_id"></select></div>
+                    <div class="input-group"><label>ID PORTA RETIRADA</label><input type="text" class="at_plib_num"></div>
                     <div class="input-group" style="grid-column:span 2">
-                        <label>CORREÇÃO DE CAMINHO</label>
+                        <label>CORREÇÃO DE CAMINHO DA PORTA LIBERADA ?</label>
                         <select class="at_correcao_caminho"><option value="NAO">NÃO</option><option value="SIM">SIM</option></select>
                     </div>
                     <div class="input-group" style="grid-column:span 2">
@@ -202,14 +202,14 @@ function adicionarNovaAba() {
                     <div class="input-group"><label>DATA</label><input type="date" class="sat_data"></div>
                     <div class="input-group"><label>CIDADE/UF</label><input type="text" class="sat_cidade"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="sat_cliente"></div>
-                    <div class="input-group"><label>CTO SATURADA</label><input type="text" class="sat_ctovald"></div>
+                    <div class="input-group"><label>CTO MAIS PROXIMA DO CLIENTE</label><input type="text" class="sat_ctovald"></div>
                     <div class="input-group"><label>COORDENADAS CLIENTE</label><input type="text" class="sat_loc_cli"></div>
                     <div class="input-group" style="grid-column: span 2"><label>MOTIVO / PARECER TÉCNICO</label><textarea class="sat_obs" placeholder="DESCREVA A ANÁLISE FEITA NO LOCAL..."></textarea></div>
                 </div>
                 <div>
                     <div class="input-group"><label>CTO'S ANALISADAS NO RAIO (DISTÂNCIA)</label><input type="text" class="sat_ctos_verif" placeholder="EX: CTO 01, 05 E 09"></div>
                     <div class="input-group"><label>CTO INDICADA PARA AMPLIAÇÃO</label><input type="text" class="sat_cto_amp"></div>
-                    <div class="input-group"><label>COORDENADAS DA INDICADA</label><input type="text" class="sat_loc_cto_ordem"></div>
+                    <div class="input-group"><label>COORDENADAS CTO</label><input type="text" class="sat_loc_cto_ordem"></div>
                     <button class="btn-primary" style="background: var(--accent-orange); width:100%; margin-top:25px;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO TÉCNICO</button>
                 </div>
             </div>
@@ -270,7 +270,7 @@ function gerarScript(id) {
     const mod = get('at_modelo_cto');
     const obs = (aba.querySelector('.at_obs_select').value === 'MANUAL') ? get('at_obs_manual') : get('at_obs_select');
     
-    let s = `// REGISTRO DE ATENDIMENTO //\nID CHAT: ${get('at_chat')}\nOS: ${get('at_os')}\nID CTO: ${get('at_cto')}\nCAMINHO: ${get('at_caminho_rede')}\nMODELO: ${mod}\nPORTA RESERVADA: ${get('at_plib_id')} (${get('at_plib_num')})\nCORREÇÃO: ${get('at_correcao_caminho')}\nOBS: ${obs}\n\nMAPA:\n`;
+    let s = `ID CHAT: ${get('at_chat')}\nORDEM DE SERVIÇO: ${get('at_os')}\nID CTO: ${get('at_cto')}\nCAMINHO DE REDE CTO: ${get('at_caminho_rede')}\nMODELO: ${mod}\nPORTA UTILIZADA: ${get('at_plib_id')} \nID PORTA RETIRADA:${get('at_plib_num')}\nCORREÇÃO CAMINHO PORTA UTILIZADA: ${get('at_correcao_caminho')}\nOBS: ${obs}\n\nMAPA:\n`;
     
     let portasArr = [];
     for(let i=1; i<=parseInt(mod); i++){
@@ -293,7 +293,7 @@ function gerarScriptSaturada(id) {
     const get = (c) => aba.querySelector('.'+c).value.toUpperCase();
     const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-    let s = `--- ⚠️ RELATÓRIO TÉCNICO: ESGOTAMENTO DE FACILIDADES (CTO) ---
+    let s = `--- ⚠️ RELATÓRIO TÉCNICO: CTO SATURADA) ---
 [DADOS DO BACKOFFICE]
 RESPONSÁVEL: ${get('sat_bko')}
 DATA DO REGISTRO: ${dataAtual}
@@ -311,7 +311,7 @@ PARECER TÉCNICO: ${get('sat_obs')}
 
 [SUGESTÃO DE PROJETO/AMPLIAÇÃO]
 CTO INDICADA: ${get('sat_cto_amp')}
-COORDENADAS PARA LANÇAMENTO: ${get('sat_loc_cto_ordem')}
+COORDENADAS CTO INDICADA: ${get('sat_loc_cto_ordem')}
 -------------------------------------------------------`;
 
     const out = aba.querySelector('.sat-output');
