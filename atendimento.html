@@ -68,6 +68,12 @@
         .history-table th, .history-table td { padding: 12px; border: 1px solid var(--border-color); text-align: left; }
         .history-table th { background: var(--card-before); color: var(--header-color); }
         .btn-action { padding: 6px; cursor: pointer; border-radius: 4px; border: none; color: white; margin-right: 4px; }
+
+        /* ESTILO DA MÉTRICA DETALHADA */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 25px; }
+        .metric-card { background: #1c2128; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; border-bottom: 3px solid var(--accent-purple); }
+        .metric-day { font-size: 10px; color: #8b949e; margin-bottom: 5px; font-weight: bold; }
+        .metric-qty { font-size: 20px; font-weight: 800; color: var(--header-color); }
     </style>
 </head>
 <body>
@@ -94,7 +100,10 @@
     <div id="at-area"></div>
 
     <div id="tab-historico" class="tab-content">
-        <h3 style="color:var(--accent-green)">🗄️ HISTÓRICO DE ATENDIMENTOS</h3>
+        <h3 style="color:var(--accent-green)">🗄️ RESUMO DOS ÚLTIMOS 7 DIAS</h3>
+        
+        <div class="metrics-grid" id="metrics-daily"></div>
+
         <input type="text" id="inputBusca" style="margin-bottom:15px; padding:12px;" placeholder="🔍 BUSCAR NO HISTÓRICO..." onkeyup="filtrarHistorico()">
         <div style="overflow-x: auto;">
             <table class="history-table" id="tabelaHist">
@@ -227,20 +236,17 @@ function adicionarNovaAba() {
     showTab(id, btn);
 }
 
-// NOVA FUNÇÃO: MONITOR DE DIGITAÇÃO MANUAL
 let timerBusca;
 function monitorarCoordenadas(abaId, valor) {
     clearTimeout(timerBusca);
     if (!valor) return;
 
-    // Se o valor contiver link do maps, extrai as coordenadas primeiro
     let coordsParaBusca = valor;
     if (valor.includes('@')) {
         const m = valor.match(/@([\-\d\.]+),([\-\d\.]+)/);
         if (m) coordsParaBusca = `${m[1]},${m[2]}`;
     }
 
-    // Aguarda 800ms sem digitar para disparar a busca (evita travar o navegador)
     timerBusca = setTimeout(() => {
         if (/[0-9]/.test(coordsParaBusca) && coordsParaBusca.includes(',')) {
             buscarCidadePorCoordenadas(abaId, coordsParaBusca);
@@ -257,7 +263,6 @@ function limparIdCTO(rawId) {
 
 async function buscarCidadePorCoordenadas(abaId, coordenadas) {
     if (!coordenadas || coordenadas.includes('http')) return;
-    
     const coordsLimpas = coordenadas.replace(/\s/g, '').split(',');
     if (coordsLimpas.length !== 2) return;
     
@@ -283,19 +288,9 @@ function processarScriptIndividual(abaId) {
     const texto = aba.querySelector('.at_import_texto').value;
     if(!texto) return;
     const capturar = (regex) => { const match = texto.match(regex); return match ? match[1].trim() : ""; };
-    
     const os = capturar(/Ordem:\s*(\d+)/i);
     let ctoBruta = capturar(/CTO a validar:\s*(.*?)(?=Localização|$)/is) || capturar(/CTO Reservada:\s*(.*?)(?=Localização|$)/is);
-    
-    let locRaw = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i) || 
-                 capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || 
-                 capturar(/Localização:\s*(.*?)(?=\n|$)/i);
-
-    let coordsFinal = locRaw;
-    if(locRaw.includes('@')){
-        const m = locRaw.match(/@([\-\d\.]+),([\-\d\.]+)/);
-        if(m) coordsFinal = `${m[1]},${m[2]}`;
-    }
+    let locRaw = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i) || capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i);
 
     aba.querySelector('.at_os').value = os;
     aba.querySelector('.at_cto').value = limparIdCTO(ctoBruta);
@@ -303,10 +298,8 @@ function processarScriptIndividual(abaId) {
     aba.querySelector('.sat_ctovald').value = limparIdCTO(ctoBruta);
     aba.querySelector('.sat_loc_cli').value = locRaw; 
     aba.querySelector('.sat_loc_cto_ordem').value = locRaw;
-
-    if(/[0-9]/.test(coordsFinal) && coordsFinal.includes(',')) {
-        buscarCidadePorCoordenadas(abaId, coordsFinal);
-    }
+    
+    if(locRaw) monitorarCoordenadas(abaId, locRaw);
 
     const modeloBruto = capturar(/Portas da CTO:\s*(\d+)/i);
     const modelo = modeloBruto.includes("8") ? "8 PORTAS" : "16 PORTAS";
@@ -354,25 +347,12 @@ function gerarScriptSaturada(id) {
     const dataAtual = new Date().toLocaleDateString('pt-BR');
 
     let s = `--- ⚠️ RELATÓRIO TÉCNICO: CTO SATURADA ---
-[DADOS DO BACKOFFICE]
 RESPONSÁVEL: ${get('sat_bko')}
-DATA DO REGISTRO: ${dataAtual}
-CIDADE/UF: ${get('sat_cidade')}
-
-[DADOS DO ATENDIMENTO]
-ORDEM DE SERVIÇO (OS): ${get('sat_cliente')}
-CTO ORIGEM (SATURADA): ${get('sat_ctovald')}
-COORDENADAS DO CLIENTE: ${get('sat_loc_cli')}
-
-[ANÁLISE DE CAMPO]
-STATUS: 100% DE OCUPAÇÃO (SEM PORTAS DISPONÍVEIS)
-RAIO DE VIABILIDADE: ${get('sat_ctos_verif')} (ANALISADAS)
-PARECER TÉCNICO: ${get('sat_obs')}
-
-[SUGESTÃO DE PROJETO/AMPLIAÇÃO]
-CTO INDICADA: ${get('sat_cto_amp')}
-COORDENADAS CTO INDICADA: ${get('sat_loc_cto_ordem')}
--------------------------------------------------------`;
+DATA: ${dataAtual} | CIDADE: ${get('sat_cidade')}
+OS: ${get('sat_cliente')} | CTO: ${get('sat_ctovald')}
+COORD. CLIENTE: ${get('sat_loc_cli')}
+PARECER: ${get('sat_obs')}
+AMPLIAÇÃO SUGERIDA: ${get('sat_cto_amp')} (${get('sat_loc_cto_ordem')})`;
 
     const out = aba.querySelector('.sat-output');
     out.innerText = s;
@@ -388,13 +368,49 @@ function salvarAtendimento(id) {
     d.timestamp = new Date().toLocaleString();
     hist.unshift(d);
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
-    showToast("SALVO COM SUCESSO!");
+    showToast("SALVO NO HISTÓRICO!");
     carregarHistorico();
+}
+
+// FUNÇÃO ATUALIZADA: GERA A CONTAGEM POR DIA (ÚLTIMOS 7 DIAS)
+function atualizarMetricasPorDia(hist) {
+    const container = document.getElementById('metrics-daily');
+    container.innerHTML = '';
+    
+    // Mapeia os últimos 7 dias
+    const contagem = {};
+    for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dataStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        contagem[dataStr] = 0;
+    }
+
+    // Conta registros baseando-se na data do timestamp
+    hist.forEach(r => {
+        const dataRegistro = r.timestamp.split(',')[0].substring(0, 5); // Pega "DD/MM"
+        if (contagem.hasOwnProperty(dataRegistro)) {
+            contagem[dataRegistro]++;
+        }
+    });
+
+    // Renderiza os cards (do mais recente para o mais antigo)
+    Object.keys(contagem).forEach(data => {
+        container.innerHTML += `
+            <div class="metric-card">
+                <div class="metric-day">${data}</div>
+                <div class="metric-qty">${contagem[data]}</div>
+            </div>
+        `;
+    });
 }
 
 function carregarHistorico() {
     const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const tbody = document.querySelector('#tabelaHist tbody');
+    
+    atualizarMetricasPorDia(hist);
+
     tbody.innerHTML = hist.map(r => `
         <tr>
             <td>${r.timestamp}</td><td>${r.chat}</td><td>${r.os}</td><td>${r.cto}</td><td>${r.correcao}</td><td>${r.obs}</td>
@@ -437,7 +453,6 @@ function editarRegistro(id) {
 }
 
 function toggleSaturada(id) { document.getElementById(`sat-form-${id}`).classList.toggle('active'); }
-
 function copiarScript(btn) { navigator.clipboard.writeText(btn.previousElementSibling.innerText).then(() => showToast("COPIADO!")); }
 
 function showTab(id, btn) {
@@ -470,9 +485,7 @@ function filtrarHistorico() {
 
 function limparForm(id) {
     const aba = document.getElementById(id);
-    aba.querySelectorAll('input, textarea').forEach(i => { 
-        if(!i.classList.contains('sat_bko')) i.value = ''; 
-    });
+    aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko')) i.value = ''; });
     aba.querySelector('.sat_data').value = new Date().toISOString().split('T')[0];
     aba.querySelectorAll('.script-output, .btn-copy, .btn-finish').forEach(el => el.style.display = 'none');
 }
