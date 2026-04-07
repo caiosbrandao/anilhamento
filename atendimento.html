@@ -203,13 +203,13 @@ function adicionarNovaAba() {
                     <div class="input-group"><label>CIDADE/UF</label><input type="text" class="sat_cidade"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="sat_cliente"></div>
                     <div class="input-group"><label>CTO MAIS PROXIMA DO CLIENTE</label><input type="text" class="sat_ctovald"></div>
-                    <div class="input-group"><label>COORDENADAS CLIENTE</label><input type="text" class="sat_loc_cli"></div>
+                    <div class="input-group"><label>COORDENADAS CLIENTE</label><input type="text" class="sat_loc_cli" oninput="monitorarCoordenadas('${id}', this.value)"></div>
                     <div class="input-group" style="grid-column: span 2"><label>MOTIVO / PARECER TÉCNICO</label><textarea class="sat_obs" placeholder="DESCREVA A ANÁLISE FEITA NO LOCAL..."></textarea></div>
                 </div>
                 <div>
                     <div class="input-group"><label>CTO'S ANALISADAS NO RAIO (DISTÂNCIA)</label><input type="text" class="sat_ctos_verif" placeholder="EX: CTO 01, 05 E 09"></div>
                     <div class="input-group"><label>CTO INDICADA PARA AMPLIAÇÃO</label><input type="text" class="sat_cto_amp"></div>
-                    <div class="input-group"><label>COORDENADAS CTO</label><input type="text" class="sat_loc_cto_ordem"></div>
+                    <div class="input-group"><label>COORDENADAS CTO</label><input type="text" class="sat_loc_cto_ordem" oninput="monitorarCoordenadas('${id}', this.value)"></div>
                     <button class="btn-primary" style="background: var(--accent-orange); width:100%; margin-top:25px;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO TÉCNICO</button>
                 </div>
             </div>
@@ -220,15 +220,62 @@ function adicionarNovaAba() {
     
     document.getElementById('at-area').insertAdjacentHTML('beforeend', html);
     atualizarInterfaceAT(id, "16 PORTAS");
-    document.getElementById(id).querySelectorAll('input[type="date"]').forEach(i => i.value = new Date().toISOString().split('T')[0]);
+    
+    const campoData = document.getElementById(id).querySelector('.sat_data');
+    campoData.value = new Date().toISOString().split('T')[0];
+
     showTab(id, btn);
+}
+
+// NOVA FUNÇÃO: MONITOR DE DIGITAÇÃO MANUAL
+let timerBusca;
+function monitorarCoordenadas(abaId, valor) {
+    clearTimeout(timerBusca);
+    if (!valor) return;
+
+    // Se o valor contiver link do maps, extrai as coordenadas primeiro
+    let coordsParaBusca = valor;
+    if (valor.includes('@')) {
+        const m = valor.match(/@([\-\d\.]+),([\-\d\.]+)/);
+        if (m) coordsParaBusca = `${m[1]},${m[2]}`;
+    }
+
+    // Aguarda 800ms sem digitar para disparar a busca (evita travar o navegador)
+    timerBusca = setTimeout(() => {
+        if (/[0-9]/.test(coordsParaBusca) && coordsParaBusca.includes(',')) {
+            buscarCidadePorCoordenadas(abaId, coordsParaBusca);
+        }
+    }, 800);
 }
 
 function limparIdCTO(rawId) {
     if(!rawId) return "";
     let limpo = rawId.toUpperCase();
-    limpo = limpo.replace(/CTO A VALIDAR:|CTO RESERVADA:|CTO:|LOCALIZAÇÃO:|LOCALIZAÇÃO|LOCALIZA/g, "");
+    limpo = limpo.replace(/CTO A VALIDAR:|CTO RESERVADA:|CTO:|LOCALIZAÇÃO DA CTO:|LOCALIZAÇÃO CLIENTE:|LOCALIZAÇÃO:|LOCALIZAÇÃO|LOCALIZA/g, "");
     return limpo.trim().replace(/^CTO\s+/g, "CTO").replace(/\s+/g, " ");
+}
+
+async function buscarCidadePorCoordenadas(abaId, coordenadas) {
+    if (!coordenadas || coordenadas.includes('http')) return;
+    
+    const coordsLimpas = coordenadas.replace(/\s/g, '').split(',');
+    if (coordsLimpas.length !== 2) return;
+    
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordsLimpas[0]}&lon=${coordsLimpas[1]}&zoom=10`, {
+            headers: { 'User-Agent': 'RegistroAtendimento/2.0' }
+        });
+        const data = await response.json();
+        if (data && data.address) {
+            const cidade = data.address.city || data.address.town || data.address.village || data.address.municipality || "";
+            const estado = data.address.state ? data.address.state : "";
+            const uf = data.address['ISO3166-2-lvl4'] ? data.address['ISO3166-2-lvl4'].split('-')[1] : estado;
+            if (cidade) {
+                document.getElementById(abaId).querySelector('.sat_cidade').value = `${cidade.toUpperCase()} / ${uf.toUpperCase()}`;
+                showToast(`LOCALIZADO: ${cidade}`);
+            }
+        }
+    } catch (e) { console.error("Erro API Nominatim", e); }
 }
 
 function processarScriptIndividual(abaId) {
@@ -239,16 +286,29 @@ function processarScriptIndividual(abaId) {
     
     const os = capturar(/Ordem:\s*(\d+)/i);
     let ctoBruta = capturar(/CTO a validar:\s*(.*?)(?=Localização|$)/is) || capturar(/CTO Reservada:\s*(.*?)(?=Localização|$)/is);
-    const locCli = capturar(/Localização Cliente:\s*([\-\d\.,\s]+)/i) || capturar(/Localização:\s*([\-\d\.,\s]+)/i);
-    const modeloBruto = capturar(/Portas da CTO:\s*(\d+)/i);
+    
+    let locRaw = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i) || 
+                 capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || 
+                 capturar(/Localização:\s*(.*?)(?=\n|$)/i);
+
+    let coordsFinal = locRaw;
+    if(locRaw.includes('@')){
+        const m = locRaw.match(/@([\-\d\.]+),([\-\d\.]+)/);
+        if(m) coordsFinal = `${m[1]},${m[2]}`;
+    }
 
     aba.querySelector('.at_os').value = os;
     aba.querySelector('.at_cto').value = limparIdCTO(ctoBruta);
     aba.querySelector('.sat_cliente').value = os;
     aba.querySelector('.sat_ctovald').value = limparIdCTO(ctoBruta);
-    aba.querySelector('.sat_loc_cli').value = locCli;
-    aba.querySelector('.sat_loc_cto_ordem').value = locCli;
+    aba.querySelector('.sat_loc_cli').value = locRaw; 
+    aba.querySelector('.sat_loc_cto_ordem').value = locRaw;
 
+    if(/[0-9]/.test(coordsFinal) && coordsFinal.includes(',')) {
+        buscarCidadePorCoordenadas(abaId, coordsFinal);
+    }
+
+    const modeloBruto = capturar(/Portas da CTO:\s*(\d+)/i);
     const modelo = modeloBruto.includes("8") ? "8 PORTAS" : "16 PORTAS";
     aba.querySelector('.at_modelo_cto').value = modelo;
     atualizarInterfaceAT(abaId, modelo);
@@ -256,7 +316,7 @@ function processarScriptIndividual(abaId) {
     for(let i=1; i<=parseInt(modelo); i++){
         const rPorta = new RegExp(`IDENTIFICAÇÃO PORTA ${i}:\\s*(.*)`, "i");
         let v = capturar(rPorta);
-        if(v.toLowerCase().includes("sem") || v.includes("{{")) v = "";
+        if(v.toLowerCase().includes("sem") || v.includes("{{") || v.toLowerCase() === 'nt') v = "";
         const input = aba.querySelector(`.pt${i}`);
         if(input) input.value = v.toUpperCase();
     }
@@ -293,7 +353,7 @@ function gerarScriptSaturada(id) {
     const get = (c) => aba.querySelector('.'+c).value.toUpperCase();
     const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-    let s = `--- ⚠️ RELATÓRIO TÉCNICO: CTO SATURADA) ---
+    let s = `--- ⚠️ RELATÓRIO TÉCNICO: CTO SATURADA ---
 [DADOS DO BACKOFFICE]
 RESPONSÁVEL: ${get('sat_bko')}
 DATA DO REGISTRO: ${dataAtual}
@@ -410,7 +470,10 @@ function filtrarHistorico() {
 
 function limparForm(id) {
     const aba = document.getElementById(id);
-    aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko')) i.value = ''; });
+    aba.querySelectorAll('input, textarea').forEach(i => { 
+        if(!i.classList.contains('sat_bko')) i.value = ''; 
+    });
+    aba.querySelector('.sat_data').value = new Date().toISOString().split('T')[0];
     aba.querySelectorAll('.script-output, .btn-copy, .btn-finish').forEach(el => el.style.display = 'none');
 }
 </script>
