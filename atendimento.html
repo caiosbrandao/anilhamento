@@ -347,12 +347,25 @@ function gerarScriptSaturada(id) {
     const dataAtual = new Date().toLocaleDateString('pt-BR');
 
     let s = `--- ⚠️ RELATÓRIO TÉCNICO: CTO SATURADA ---
+
+[DADOS DO BACKOFFICE]
 RESPONSÁVEL: ${get('sat_bko')}
-DATA: ${dataAtual} | CIDADE: ${get('sat_cidade')}
-OS: ${get('sat_cliente')} | CTO: ${get('sat_ctovald')}
-COORD. CLIENTE: ${get('sat_loc_cli')}
-PARECER: ${get('sat_obs')}
-AMPLIAÇÃO SUGERIDA: ${get('sat_cto_amp')} (${get('sat_loc_cto_ordem')})`;
+DATA DO REGISTRO: ${dataAtual}
+CIDADE/UF: ${get('sat_cidade')}
+
+[DADOS DO ATENDIMENTO]
+ORDEM DE SERVIÇO (OS): ${get('sat_cliente')}
+CTO ORIGEM (SATURADA): ${get('sat_ctovald')}
+COORDENADAS DO CLIENTE: ${get('sat_loc_cli')}
+
+[ANÁLISE DE CAMPO]
+STATUS: 100% DE OCUPAÇÃO (SEM PORTAS DISPONÍVEIS)
+RAIO DE VIABILIDADE: ${get('sat_ctos_verif')}
+PARECER TÉCNICO: ${get('sat_obs')}
+
+[SUGESTÃO DE PROJETO/AMPLIAÇÃO]
+CTO INDICADA: ${get('sat_cto_amp')}
+COORDENADAS CTO MAIS PROXIMA: ${get('sat_loc_cto_ordem')}`;
 
     const out = aba.querySelector('.sat-output');
     out.innerText = s;
