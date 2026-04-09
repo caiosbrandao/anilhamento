@@ -69,7 +69,6 @@
         .history-table th { background: var(--card-before); color: var(--header-color); }
         .btn-action { padding: 6px; cursor: pointer; border-radius: 4px; border: none; color: white; margin-right: 4px; }
 
-        /* ESTILO DA MÉTRICA DETALHADA */
         .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 25px; }
         .metric-card { background: #1c2128; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; border-bottom: 3px solid var(--accent-purple); }
         .metric-day { font-size: 10px; color: #8b949e; margin-bottom: 5px; font-weight: bold; }
@@ -101,9 +100,7 @@
 
     <div id="tab-historico" class="tab-content">
         <h3 style="color:var(--accent-green)">🗄️ RESUMO DOS ÚLTIMOS 7 DIAS</h3>
-        
         <div class="metrics-grid" id="metrics-daily"></div>
-
         <input type="text" id="inputBusca" style="margin-bottom:15px; padding:12px;" placeholder="🔍 BUSCAR NO HISTÓRICO..." onkeyup="filtrarHistorico()">
         <div style="overflow-x: auto;">
             <table class="history-table" id="tabelaHist">
@@ -162,7 +159,7 @@ function adicionarNovaAba() {
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                     <div class="input-group"><label>ID CHAT</label><input type="text" class="at_chat"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="at_os"></div>
-                    <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto"></div>
+                    <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value)"></div>
                     <div class="input-group" style="grid-column:span 2"><label>CAMINHO DE REDE CTO</label><input type="text" class="at_caminho_rede"></div>
                     <div class="input-group" style="grid-column:span 2">
                         <label>MODELO CTO</label>
@@ -210,15 +207,14 @@ function adicionarNovaAba() {
                     <div class="input-group"><label>BKO RESPONSÁVEL</label><input type="text" class="sat_bko" value="CAIO BRANDÃO"></div>
                     <div class="input-group"><label>DATA</label><input type="date" class="sat_data"></div>
                     <div class="input-group"><label>CIDADE/UF</label><input type="text" class="sat_cidade"></div>
-                    <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="sat_cliente"></div>
-                    <div class="input-group"><label>CTO MAIS PROXIMA DO CLIENTE</label><input type="text" class="sat_ctovald"></div>
+                    <div class="input-group"><label>ORDEM DE SERVIÇO (ATENDIMENTO)</label><input type="text" class="sat_cliente"></div>
+                    <div class="input-group"><label>CTO VALIDADA</label><input type="text" class="sat_ctovald"></div>
                     <div class="input-group"><label>COORDENADAS CLIENTE</label><input type="text" class="sat_loc_cli" oninput="monitorarCoordenadas('${id}', this.value)"></div>
                     <div class="input-group" style="grid-column: span 2"><label>MOTIVO / PARECER TÉCNICO</label><textarea class="sat_obs" placeholder="DESCREVA A ANÁLISE FEITA NO LOCAL..."></textarea></div>
                 </div>
                 <div>
                     <div class="input-group"><label>CTO'S ANALISADAS NO RAIO (DISTÂNCIA)</label><input type="text" class="sat_ctos_verif" placeholder="EX: CTO 01, 05 E 09"></div>
-                    <div class="input-group"><label>CTO INDICADA PARA AMPLIAÇÃO</label><input type="text" class="sat_cto_amp"></div>
-                    <div class="input-group"><label>COORDENADAS CTO</label><input type="text" class="sat_loc_cto_ordem" oninput="monitorarCoordenadas('${id}', this.value)"></div>
+                    <div class="input-group"><label>COORDENADAS CTO MAIS PROXIMA</label><input type="text" class="sat_loc_cto_ordem" oninput="monitorarCoordenadas('${id}', this.value)"></div>
                     <button class="btn-primary" style="background: var(--accent-orange); width:100%; margin-top:25px;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO TÉCNICO</button>
                 </div>
             </div>
@@ -234,6 +230,17 @@ function adicionarNovaAba() {
     campoData.value = new Date().toISOString().split('T')[0];
 
     showTab(id, btn);
+}
+
+// FUNÇÃO PARA PUXAR O CAMINHO DA REDE AUTOMATICAMENTE
+function puxarCaminhoRedeAutomatico(abaId, idCto) {
+    if (!idCto) return;
+    const ctoLimpa = idCto.trim().toUpperCase();
+    const mapaCaminhos = JSON.parse(localStorage.getItem('mapa_cto_caminhos') || '{}');
+    if (mapaCaminhos[ctoLimpa]) {
+        document.getElementById(abaId).querySelector('.at_caminho_rede').value = mapaCaminhos[ctoLimpa];
+        showToast("CAMINHO DE REDE RECUPERADO!");
+    }
 }
 
 let timerBusca;
@@ -292,13 +299,17 @@ function processarScriptIndividual(abaId) {
     let ctoBruta = capturar(/CTO a validar:\s*(.*?)(?=Localização|$)/is) || capturar(/CTO Reservada:\s*(.*?)(?=Localização|$)/is);
     let locRaw = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i) || capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i);
 
+    const ctoLimpada = limparIdCTO(ctoBruta);
     aba.querySelector('.at_os').value = os;
-    aba.querySelector('.at_cto').value = limparIdCTO(ctoBruta);
+    aba.querySelector('.at_cto').value = ctoLimpada;
     aba.querySelector('.sat_cliente').value = os;
-    aba.querySelector('.sat_ctovald').value = limparIdCTO(ctoBruta);
+    aba.querySelector('.sat_ctovald').value = ctoLimpada;
     aba.querySelector('.sat_loc_cli').value = locRaw; 
     aba.querySelector('.sat_loc_cto_ordem').value = locRaw;
     
+    // Tenta puxar o caminho da rede após importar o ID da CTO
+    puxarCaminhoRedeAutomatico(abaId, ctoLimpada);
+
     if(locRaw) monitorarCoordenadas(abaId, locRaw);
 
     const modeloBruto = capturar(/Portas da CTO:\s*(\d+)/i);
@@ -332,7 +343,16 @@ function gerarScript(id) {
         s += `P${i.toString().padStart(2,'0')}: ${v}\n`;
     }
 
-    dadosTemporarios[id] = { chat: get('at_chat'), os: get('at_os'), cto: get('at_cto'), correcao: get('at_correcao_caminho'), obs: obs, modelo: mod, portas: portasArr };
+    dadosTemporarios[id] = { 
+        chat: get('at_chat'), 
+        os: get('at_os'), 
+        cto: get('at_cto'), 
+        caminho_rede: get('at_caminho_rede'),
+        correcao: get('at_correcao_caminho'), 
+        obs: obs, 
+        modelo: mod, 
+        portas: portasArr 
+    };
     
     const out = aba.querySelector('.at-output');
     out.innerText = s;
@@ -345,27 +365,19 @@ function gerarScriptSaturada(id) {
     const aba = document.getElementById(id);
     const get = (c) => aba.querySelector('.'+c).value.toUpperCase();
     const dataAtual = new Date().toLocaleDateString('pt-BR');
+    const idChatGeral = aba.querySelector('.at_chat').value.toUpperCase();
 
-    let s = `--- ⚠️ RELATÓRIO TÉCNICO: CTO SATURADA ---
-
-[DADOS DO BACKOFFICE]
-RESPONSÁVEL: ${get('sat_bko')}
-DATA DO REGISTRO: ${dataAtual}
-CIDADE/UF: ${get('sat_cidade')}
-
-[DADOS DO ATENDIMENTO]
-ORDEM DE SERVIÇO (OS): ${get('sat_cliente')}
-CTO ORIGEM (SATURADA): ${get('sat_ctovald')}
-COORDENADAS DO CLIENTE: ${get('sat_loc_cli')}
-
-[ANÁLISE DE CAMPO]
-STATUS: 100% DE OCUPAÇÃO (SEM PORTAS DISPONÍVEIS)
-RAIO DE VIABILIDADE: ${get('sat_ctos_verif')}
-PARECER TÉCNICO: ${get('sat_obs')}
-
-[SUGESTÃO DE PROJETO/AMPLIAÇÃO]
-CTO INDICADA: ${get('sat_cto_amp')}
-COORDENADAS CTO MAIS PROXIMA: ${get('sat_loc_cto_ordem')}`;
+    let s = `// CTO SATURADA //\n`;
+    s += `BKO: ${get('sat_bko')}\n`;
+    s += `DATA: ${dataAtual}\n`;
+    s += `ID Chat: ${idChatGeral}\n`;
+    s += `Cidade: ${get('sat_cidade')}\n`;
+    s += `Atendimento: ${get('sat_cliente')}\n`;
+    s += `Cliente: ${get('sat_cliente')}\n`;
+    s += `CTO Validada: ${get('sat_ctovald')}\n`;
+    s += `Loc. Cliente: ${get('sat_loc_cli')}\n`;
+    s += `Loc. CTO: ${get('sat_loc_cto_ordem')}\n`;
+    s += `Obs: ${get('sat_obs')}`;
 
     const out = aba.querySelector('.sat-output');
     out.innerText = s;
@@ -377,6 +389,14 @@ function salvarAtendimento(id) {
     let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const d = dadosTemporarios[id];
     if(!d) return;
+
+    // SALVA O MAPEAMENTO DE CTO -> CAMINHO DE REDE
+    if (d.cto && d.caminho_rede) {
+        let mapaCaminhos = JSON.parse(localStorage.getItem('mapa_cto_caminhos') || '{}');
+        mapaCaminhos[d.cto] = d.caminho_rede;
+        localStorage.setItem('mapa_cto_caminhos', JSON.stringify(mapaCaminhos));
+    }
+
     d.id_reg = Date.now();
     d.timestamp = new Date().toLocaleString();
     hist.unshift(d);
@@ -385,12 +405,9 @@ function salvarAtendimento(id) {
     carregarHistorico();
 }
 
-// FUNÇÃO ATUALIZADA: GERA A CONTAGEM POR DIA (ÚLTIMOS 7 DIAS)
 function atualizarMetricasPorDia(hist) {
     const container = document.getElementById('metrics-daily');
     container.innerHTML = '';
-    
-    // Mapeia os últimos 7 dias
     const contagem = {};
     for (let i = 0; i < 7; i++) {
         const d = new Date();
@@ -398,32 +415,19 @@ function atualizarMetricasPorDia(hist) {
         const dataStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         contagem[dataStr] = 0;
     }
-
-    // Conta registros baseando-se na data do timestamp
     hist.forEach(r => {
-        const dataRegistro = r.timestamp.split(',')[0].substring(0, 5); // Pega "DD/MM"
-        if (contagem.hasOwnProperty(dataRegistro)) {
-            contagem[dataRegistro]++;
-        }
+        const dataRegistro = r.timestamp.split(',')[0].substring(0, 5);
+        if (contagem.hasOwnProperty(dataRegistro)) contagem[dataRegistro]++;
     });
-
-    // Renderiza os cards (do mais recente para o mais antigo)
     Object.keys(contagem).forEach(data => {
-        container.innerHTML += `
-            <div class="metric-card">
-                <div class="metric-day">${data}</div>
-                <div class="metric-qty">${contagem[data]}</div>
-            </div>
-        `;
+        container.innerHTML += `<div class="metric-card"><div class="metric-day">${data}</div><div class="metric-qty">${contagem[data]}</div></div>`;
     });
 }
 
 function carregarHistorico() {
     const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const tbody = document.querySelector('#tabelaHist tbody');
-    
     atualizarMetricasPorDia(hist);
-
     tbody.innerHTML = hist.map(r => `
         <tr>
             <td>${r.timestamp}</td><td>${r.chat}</td><td>${r.os}</td><td>${r.cto}</td><td>${r.correcao}</td><td>${r.obs}</td>
@@ -454,14 +458,13 @@ function editarRegistro(id) {
     if(!r) return;
     let abaId = document.querySelector('.tab-content:not(#tab-historico)').id;
     const aba = document.getElementById(abaId);
-    
     aba.querySelector('.at_chat').value = r.chat;
     aba.querySelector('.at_os').value = r.os;
     aba.querySelector('.at_cto').value = r.cto;
+    aba.querySelector('.at_caminho_rede').value = r.caminho_rede || '';
     aba.querySelector('.at_modelo_cto').value = r.modelo;
     atualizarInterfaceAT(abaId, r.modelo);
     r.portas.forEach((p, i) => { const input = aba.querySelector(`.pt${i+1}`); if(input) input.value = (p === 'LIVRE' ? '' : p); });
-    
     showTab(abaId, document.getElementById(`btn-${abaId}`));
 }
 
