@@ -396,23 +396,43 @@ function gerarScriptSaturada(id) {
 }
 
 function salvarAtendimento(id) {
+    const aba = document.getElementById(id);
     const btnSave = document.getElementById(`btn-finish-${id}`);
-    if(!dadosTemporarios[id]) gerarScript(id);
-    let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
+    
+    gerarScript(id);
     const d = dadosTemporarios[id];
+    
     if(!d.os || !d.cto) {
         showToast("OS E CTO SÃO OBRIGATÓRIOS!", "var(--accent-red)");
         return;
     }
+
+    const satMotivo = aba.querySelector('.sat_obs').value;
+    if (satMotivo && satMotivo.trim() !== "") {
+        d.saturada = {
+            bko: aba.querySelector('.sat_bko').value.toUpperCase(),
+            data: aba.querySelector('.sat_data').value,
+            cidade: aba.querySelector('.sat_cidade').value.toUpperCase(),
+            cto_validada: aba.querySelector('.sat_ctovald').value.toUpperCase(),
+            loc_cli: aba.querySelector('.sat_loc_cli').value.toUpperCase(),
+            loc_cto: aba.querySelector('.sat_loc_cto_ordem').value.toUpperCase(),
+            parecer: satMotivo.toUpperCase()
+        };
+    }
+
     if (d.cto && d.caminho_rede) {
         let mapaCaminhos = JSON.parse(localStorage.getItem('mapa_cto_caminhos') || '{}');
         mapaCaminhos[d.cto] = d.caminho_rede;
         localStorage.setItem('mapa_cto_caminhos', JSON.stringify(mapaCaminhos));
     }
+
+    let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     d.id_reg = Date.now();
     d.timestamp = new Date().toLocaleString();
+    
     hist.unshift(d);
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
+    
     btnSave.innerHTML = "✅ ARQUIVO SALVO!";
     btnSave.classList.add('success-anim');
     showToast("ARQUIVO SALVO COM SUCESSO NO HISTÓRICO!");
@@ -444,7 +464,12 @@ function carregarHistorico() {
     atualizarMetricasPorDia(hist);
     tbody.innerHTML = hist.map(r => `
         <tr>
-            <td>${r.timestamp}</td><td>${r.chat}</td><td>${r.os}</td><td>${r.cto}</td><td>${r.correcao}</td><td>${r.obs}</td>
+            <td>${r.timestamp}</td>
+            <td>${r.chat}</td>
+            <td>${r.os}</td>
+            <td>${r.cto}</td>
+            <td>${r.correcao}</td>
+            <td>${r.obs}</td>
             <td>
                 <button class="btn-action" style="background:var(--header-color)" onclick="editarRegistro(${r.id_reg})">✏️</button>
                 <button class="btn-action" style="background:var(--accent-red)" onclick="excluirRegistro(${r.id_reg})">🗑️</button>
@@ -470,8 +495,10 @@ function editarRegistro(id) {
     const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const r = hist.find(x => x.id_reg === id);
     if(!r) return;
+    
     let abaId = document.querySelector('.tab-content:not(#tab-historico)').id;
     const aba = document.getElementById(abaId);
+    
     aba.querySelector('.at_chat').value = r.chat;
     aba.querySelector('.at_os').value = r.os;
     aba.querySelector('.at_cto').value = r.cto;
@@ -479,6 +506,18 @@ function editarRegistro(id) {
     aba.querySelector('.at_modelo_cto').value = r.modelo;
     atualizarInterfaceAT(abaId, r.modelo);
     r.portas.forEach((p, i) => { const input = aba.querySelector(`.pt${i+1}`); if(input) input.value = p; });
+
+    if (r.saturada) {
+        aba.querySelector('.sat_bko').value = r.saturada.bko;
+        aba.querySelector('.sat_data').value = r.saturada.data;
+        aba.querySelector('.sat_cidade').value = r.saturada.cidade;
+        aba.querySelector('.sat_ctovald').value = r.saturada.cto_validada;
+        aba.querySelector('.sat_loc_cli').value = r.saturada.loc_cli;
+        aba.querySelector('.sat_loc_cto_ordem').value = r.saturada.loc_cto;
+        aba.querySelector('.sat_obs').value = r.saturada.parecer;
+        document.getElementById(`sat-form-${abaId}`).classList.add('active');
+    }
+
     showTab(abaId, document.getElementById(`btn-${abaId}`));
 }
 
@@ -518,6 +557,7 @@ function limparForm(id) {
     aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko')) i.value = ''; });
     aba.querySelector('.sat_data').value = new Date().toISOString().split('T')[0];
     aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
+    document.getElementById(`sat-form-${id}`).classList.remove('active');
     const btnSave = document.getElementById(`btn-finish-${id}`);
     btnSave.innerHTML = "✅ SALVAR NO HISTÓRICO";
     btnSave.classList.remove('success-anim');
