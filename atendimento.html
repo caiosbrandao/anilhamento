@@ -148,6 +148,8 @@ function adicionarNovaAba() {
 
     const html = `
     <div id="${id}" class="tab-content">
+        <input type="hidden" class="at_id_reg" value="">
+
         <details class="import-box" open>
             <summary>📥 IMPORTAR SCRIPT DE CAMPO</summary>
             <textarea class="at_import_texto" style="height: 120px; text-transform: none;" placeholder="COLE O SCRIPT DO TÉCNICO AQUI..."></textarea>
@@ -188,8 +190,8 @@ function adicionarNovaAba() {
                 </div>
                 <div class="btn-group">
                     <button class="btn-primary" onclick="gerarScript('${id}')">🚀 GERAR SCRIPT</button>
-                    <button class="btn-sat-toggle" onclick="toggleSaturada('${id}')">⚠️ RELATAR SATURAÇÃO</button>
                     <button class="btn-finish" id="btn-finish-${id}" onclick="salvarAtendimento('${id}')">✅ SALVAR NO HISTÓRICO</button>
+                    <button class="btn-sat-toggle" onclick="toggleSaturada('${id}')">⚠️ RELATAR SATURAÇÃO</button>
                     <button class="btn-clear" onclick="limparForm('${id}')">🗑️</button>
                 </div>
                 <div class="script-output at-output"></div>
@@ -246,13 +248,11 @@ let timerBusca;
 function monitorarCoordenadas(abaId, valor) {
     clearTimeout(timerBusca);
     if (!valor) return;
-
     let coordsParaBusca = valor;
     if (valor.includes('@')) {
         const m = valor.match(/@([\-\d\.]+),([\-\d\.]+)/);
         if (m) coordsParaBusca = `${m[1]},${m[2]}`;
     }
-
     timerBusca = setTimeout(() => {
         if (/[0-9]/.test(coordsParaBusca) && coordsParaBusca.includes(',')) {
             buscarCidadePorCoordenadas(abaId, coordsParaBusca);
@@ -271,7 +271,6 @@ async function buscarCidadePorCoordenadas(abaId, coordenadas) {
     if (!coordenadas || coordenadas.includes('http')) return;
     const coordsLimpas = coordenadas.replace(/\s/g, '').split(',');
     if (coordsLimpas.length !== 2) return;
-    
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordsLimpas[0]}&lon=${coordsLimpas[1]}&zoom=10`, {
             headers: { 'User-Agent': 'RegistroAtendimento/2.0' }
@@ -294,44 +293,33 @@ function processarScriptIndividual(abaId) {
     const texto = aba.querySelector('.at_import_texto').value;
     if(!texto) return;
     const capturar = (regex) => { const match = texto.match(regex); return match ? match[1].trim() : ""; };
-    
     const os = capturar(/Ordem:\s*(\d+)/i);
     let ctoBruta = capturar(/CTO a validar:\s*(.*?)(?=Localização|$)/is) || capturar(/CTO Reservada:\s*(.*?)(?=Localização|$)/is);
-    
     let locCliente = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i);
     let locCto = capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i);
-
     const ctoLimpada = limparIdCTO(ctoBruta);
     aba.querySelector('.at_os').value = os;
     aba.querySelector('.at_cto').value = ctoLimpada;
     aba.querySelector('.sat_cliente').value = os;
     aba.querySelector('.sat_ctovald').value = ctoLimpada;
-    
     aba.querySelector('.sat_loc_cli').value = locCliente; 
     aba.querySelector('.sat_loc_cto_ordem').value = locCto;
-    
     puxarCaminhoRedeAutomatico(abaId, ctoLimpada);
-
     if(locCliente) monitorarCoordenadas(abaId, locCliente);
     else if(locCto) monitorarCoordenadas(abaId, locCto);
-
     const modeloBruto = capturar(/Portas da CTO:\s*(\d+)/i);
     const modelo = modeloBruto.includes("8") ? "8 PORTAS" : "16 PORTAS";
     aba.querySelector('.at_modelo_cto').value = modelo;
     atualizarInterfaceAT(abaId, modelo);
-
     for(let i=1; i<=parseInt(modelo); i++){
         const rPorta = new RegExp(`IDENTIFICAÇÃO PORTA ${i}:\\s*(.*)`, "i");
         let v = capturar(rPorta).toUpperCase().trim();
-        
         const padraoZeros = /^[0]+$/; 
         const tresDigitosPuros = /^\d{3}$/; 
         const contemLetrasOuSimbolos = /[A-ZÀ-Ú!@#$%^&*()]/i; 
-
         if(v === "" || v === "NT" || v.length < 3 || v.includes("{{") || v.includes("SEM ID") || padraoZeros.test(v) || tresDigitosPuros.test(v) || (contemLetrasOuSimbolos.test(v) && v.length < 3)) {
             v = "SEM ID";
         }
-
         const input = aba.querySelector(`.pt${i}`);
         if(input) input.value = v; 
     }
@@ -377,7 +365,6 @@ function gerarScriptSaturada(id) {
     const get = (c) => aba.querySelector('.'+c).value.toUpperCase();
     const dataAtual = new Date().toLocaleDateString('pt-BR');
     const idChatGeral = aba.querySelector('.at_chat').value.toUpperCase();
-
     let s = `// CTO SATURADA //\n`;
     s += `BKO: ${get('sat_bko')}\n`;
     s += `DATA: ${dataAtual}\n`;
@@ -388,7 +375,6 @@ function gerarScriptSaturada(id) {
     s += `Loc. Cliente: ${get('sat_loc_cli')}\n`;
     s += `Loc. CTO: ${get('sat_loc_cto_ordem')}\n`;
     s += `Obs: ${get('sat_obs')}`;
-
     const out = aba.querySelector('.sat-output');
     out.innerText = s;
     out.style.display = 'block';
@@ -398,6 +384,7 @@ function gerarScriptSaturada(id) {
 function salvarAtendimento(id) {
     const aba = document.getElementById(id);
     const btnSave = document.getElementById(`btn-finish-${id}`);
+    const inputIdReg = aba.querySelector('.at_id_reg');
     
     gerarScript(id);
     const d = dadosTemporarios[id];
@@ -407,6 +394,7 @@ function salvarAtendimento(id) {
         return;
     }
 
+    // Captura dados de saturação
     const satMotivo = aba.querySelector('.sat_obs').value;
     if (satMotivo && satMotivo.trim() !== "") {
         d.saturada = {
@@ -427,15 +415,38 @@ function salvarAtendimento(id) {
     }
 
     let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
-    d.id_reg = Date.now();
-    d.timestamp = new Date().toLocaleString();
+
+    // LÓGICA DE ATUALIZAÇÃO OU CRIAÇÃO
+    if (inputIdReg.value) {
+        // Se a aba já tem um ID, procura no histórico e atualiza
+        const index = hist.findIndex(x => x.id_reg == inputIdReg.value);
+        if (index !== -1) {
+            d.id_reg = parseInt(inputIdReg.value);
+            d.timestamp = hist[index].timestamp; // Mantém a data original da criação
+            d.last_update = new Date().toLocaleString(); // Registra última modificação
+            hist[index] = d;
+            showToast("REGISTRO ATUALIZADO!");
+        } else {
+            // Caso o ID tenha sido removido do histórico por fora, cria um novo
+            d.id_reg = Date.now();
+            d.timestamp = new Date().toLocaleString();
+            inputIdReg.value = d.id_reg;
+            hist.unshift(d);
+            showToast("ARQUIVO SALVO!");
+        }
+    } else {
+        // Novo registro
+        d.id_reg = Date.now();
+        d.timestamp = new Date().toLocaleString();
+        inputIdReg.value = d.id_reg;
+        hist.unshift(d);
+        showToast("ARQUIVO SALVO!");
+    }
     
-    hist.unshift(d);
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
     
-    btnSave.innerHTML = "✅ ARQUIVO SALVO!";
+    btnSave.innerHTML = "✅ ATUALIZADO!";
     btnSave.classList.add('success-anim');
-    showToast("ARQUIVO SALVO COM SUCESSO NO HISTÓRICO!");
     carregarHistorico();
 }
 
@@ -499,6 +510,9 @@ function editarRegistro(id) {
     let abaId = document.querySelector('.tab-content:not(#tab-historico)').id;
     const aba = document.getElementById(abaId);
     
+    // Seta o ID do registro na aba para que o salvar saiba que deve atualizar este item
+    aba.querySelector('.at_id_reg').value = r.id_reg;
+    
     aba.querySelector('.at_chat').value = r.chat;
     aba.querySelector('.at_os').value = r.os;
     aba.querySelector('.at_cto').value = r.cto;
@@ -554,7 +568,8 @@ function filtrarHistorico() {
 
 function limparForm(id) {
     const aba = document.getElementById(id);
-    aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko')) i.value = ''; });
+    aba.querySelector('.at_id_reg').value = ''; // Limpa o ID vinculado
+    aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko') && i.type !== 'hidden') i.value = ''; });
     aba.querySelector('.sat_data').value = new Date().toISOString().split('T')[0];
     aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
     document.getElementById(`sat-form-${id}`).classList.remove('active');
