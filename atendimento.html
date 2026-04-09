@@ -26,7 +26,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .toast { background: var(--accent-green); color: white; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 13px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px; animation: slideIn 0.5s ease, fadeOut 0.5s ease 2.5s forwards; border-left: 5px solid #fff; }
+        .toast { background: var(--accent-green); color: white; padding: 15px 30px; border-radius: 8px; font-weight: 800; font-size: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 12px; animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), fadeOut 0.5s ease 2.5s forwards; border-left: 6px solid #fff; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
 
@@ -55,10 +55,11 @@
         .porta-item input { height: 28px; padding: 4px 8px; }
 
         .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-        .btn-primary { background: var(--header-color); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; flex: 1; text-transform: uppercase; min-width: 150px; }
+        .btn-primary { background: var(--header-color); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; flex: 1; text-transform: uppercase; min-width: 150px; transition: 0.3s; }
         .btn-sat-toggle { background: var(--accent-orange); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; padding: 12px; flex: 1; min-width: 150px; }
         .btn-copy { background: var(--accent-green); color: white; display: none; margin-top: 10px; width: 100%; padding: 12px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; }
-        .btn-finish { background: var(--accent-green); display: none; }
+        .btn-finish { background: var(--accent-green); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; padding: 12px; flex: 1; min-width: 150px; transition: 0.3s; }
+        .btn-finish.success-anim { background: #ffffff !important; color: #000 !important; transform: scale(1.05); }
         .btn-clear { background: #485e74; color: white; width: 60px; border: none; border-radius: 6px; cursor: pointer; }
         
         .script-output { background: #011627; color: #addb67; padding: 15px; border-radius: 8px; font-family: 'Consolas', monospace; display: none; white-space: pre-wrap; border-left: 4px solid var(--accent-green); font-size: 12px; margin-top: 15px; }
@@ -128,7 +129,7 @@ function showToast(msg, color = 'var(--accent-green)') {
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.style.background = color;
-    toast.innerHTML = `<span>🚀</span> ${msg}`;
+    toast.innerHTML = `<span>📂</span> ${msg}`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
@@ -188,7 +189,7 @@ function adicionarNovaAba() {
                 <div class="btn-group">
                     <button class="btn-primary" onclick="gerarScript('${id}')">🚀 GERAR SCRIPT</button>
                     <button class="btn-sat-toggle" onclick="toggleSaturada('${id}')">⚠️ RELATAR SATURAÇÃO</button>
-                    <button class="btn-primary btn-finish" id="btn-finish-${id}" onclick="salvarAtendimento('${id}')">✅ SALVAR NO HISTÓRICO</button>
+                    <button class="btn-finish" id="btn-finish-${id}" onclick="salvarAtendimento('${id}')">✅ SALVAR NO HISTÓRICO</button>
                     <button class="btn-clear" onclick="limparForm('${id}')">🗑️</button>
                 </div>
                 <div class="script-output at-output"></div>
@@ -232,7 +233,6 @@ function adicionarNovaAba() {
     showTab(id, btn);
 }
 
-// FUNÇÃO PARA PUXAR O CAMINHO DA REDE AUTOMATICAMENTE
 function puxarCaminhoRedeAutomatico(abaId, idCto) {
     if (!idCto) return;
     const ctoLimpa = idCto.trim().toUpperCase();
@@ -307,7 +307,6 @@ function processarScriptIndividual(abaId) {
     aba.querySelector('.sat_loc_cli').value = locRaw; 
     aba.querySelector('.sat_loc_cto_ordem').value = locRaw;
     
-    // Tenta puxar o caminho da rede após importar o ID da CTO
     puxarCaminhoRedeAutomatico(abaId, ctoLimpada);
 
     if(locRaw) monitorarCoordenadas(abaId, locRaw);
@@ -317,12 +316,22 @@ function processarScriptIndividual(abaId) {
     aba.querySelector('.at_modelo_cto').value = modelo;
     atualizarInterfaceAT(abaId, modelo);
 
+    // REGRAS DE MAPEAMENTO "SEM ID" (Incluindo regra de Menor que 3 dígitos)
     for(let i=1; i<=parseInt(modelo); i++){
         const rPorta = new RegExp(`IDENTIFICAÇÃO PORTA ${i}:\\s*(.*)`, "i");
-        let v = capturar(rPorta);
-        if(v.toLowerCase().includes("sem") || v.includes("{{") || v.toLowerCase() === 'nt') v = "";
+        let v = capturar(rPorta).toUpperCase().trim();
+        
+        const padraoZeros = /^[0]+$/; 
+        const tresDigitosPuros = /^\d{3}$/; // Aqui mantemos a lógica que 3 dígitos puros (ex: 123) também é SEM ID conforme regra anterior
+        const contemLetrasOuSimbolos = /[A-ZÀ-Ú!@#$%^&*()]/i; 
+
+        // NOVA REGRA: v.length < 3 (cobre 0, 1 e 2 caracteres)
+        if(v === "" || v === "NT" || v.length < 3 || v.includes("{{") || v.includes("SEM ID") || padraoZeros.test(v) || tresDigitosPuros.test(v) || (contemLetrasOuSimbolos.test(v) && v.length < 3)) {
+            v = "SEM ID";
+        }
+
         const input = aba.querySelector(`.pt${i}`);
-        if(input) input.value = v.toUpperCase();
+        if(input) input.value = v; 
     }
     aba.querySelector('details').open = false;
     showToast("DADOS IMPORTADOS!");
@@ -338,7 +347,8 @@ function gerarScript(id) {
     
     let portasArr = [];
     for(let i=1; i<=parseInt(mod); i++){
-        let v = aba.querySelector(`.pt${i}`).value.toUpperCase() || "LIVRE";
+        let v = aba.querySelector(`.pt${i}`).value.toUpperCase().trim();
+        if (v === "" || v === "LIVRE") v = "SEM ID";
         portasArr.push(v);
         s += `P${i.toString().padStart(2,'0')}: ${v}\n`;
     }
@@ -358,7 +368,6 @@ function gerarScript(id) {
     out.innerText = s;
     out.style.display = 'block';
     aba.querySelector('.btn-copy').style.display = 'block';
-    aba.querySelector('.btn-finish').style.display = 'block';
 }
 
 function gerarScriptSaturada(id) {
@@ -386,11 +395,20 @@ function gerarScriptSaturada(id) {
 }
 
 function salvarAtendimento(id) {
+    const btnSave = document.getElementById(`btn-finish-${id}`);
+    
+    if(!dadosTemporarios[id]) {
+        gerarScript(id);
+    }
+    
     let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const d = dadosTemporarios[id];
-    if(!d) return;
+    
+    if(!d.os || !d.cto) {
+        showToast("OS E CTO SÃO OBRIGATÓRIOS!", "var(--accent-red)");
+        return;
+    }
 
-    // SALVA O MAPEAMENTO DE CTO -> CAMINHO DE REDE
     if (d.cto && d.caminho_rede) {
         let mapaCaminhos = JSON.parse(localStorage.getItem('mapa_cto_caminhos') || '{}');
         mapaCaminhos[d.cto] = d.caminho_rede;
@@ -401,7 +419,12 @@ function salvarAtendimento(id) {
     d.timestamp = new Date().toLocaleString();
     hist.unshift(d);
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
-    showToast("SALVO NO HISTÓRICO!");
+    
+    // FEEDBACK VISUAL NO BOTÃO PERSISTENTE
+    btnSave.innerHTML = "✅ ARQUIVO SALVO!";
+    btnSave.classList.add('success-anim');
+    
+    showToast("ARQUIVO SALVO COM SUCESSO NO HISTÓRICO!");
     carregarHistorico();
 }
 
@@ -464,7 +487,7 @@ function editarRegistro(id) {
     aba.querySelector('.at_caminho_rede').value = r.caminho_rede || '';
     aba.querySelector('.at_modelo_cto').value = r.modelo;
     atualizarInterfaceAT(abaId, r.modelo);
-    r.portas.forEach((p, i) => { const input = aba.querySelector(`.pt${i+1}`); if(input) input.value = (p === 'LIVRE' ? '' : p); });
+    r.portas.forEach((p, i) => { const input = aba.querySelector(`.pt${i+1}`); if(input) input.value = p; });
     showTab(abaId, document.getElementById(`btn-${abaId}`));
 }
 
@@ -503,7 +526,14 @@ function limparForm(id) {
     const aba = document.getElementById(id);
     aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko')) i.value = ''; });
     aba.querySelector('.sat_data').value = new Date().toISOString().split('T')[0];
-    aba.querySelectorAll('.script-output, .btn-copy, .btn-finish').forEach(el => el.style.display = 'none');
+    aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
+    
+    // RESET DO BOTAO DE SALVAR
+    const btnSave = document.getElementById(`btn-finish-${id}`);
+    btnSave.innerHTML = "✅ SALVAR NO HISTÓRICO";
+    btnSave.classList.remove('success-anim');
+    
+    dadosTemporarios[id] = null;
 }
 </script>
 </body>
