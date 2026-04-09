@@ -214,7 +214,6 @@ function adicionarNovaAba() {
                     <div class="input-group" style="grid-column: span 2"><label>MOTIVO / PARECER TÉCNICO</label><textarea class="sat_obs" placeholder="DESCREVA A ANÁLISE FEITA NO LOCAL..."></textarea></div>
                 </div>
                 <div>
-                    <div class="input-group"><label>CTO'S ANALISADAS NO RAIO (DISTÂNCIA)</label><input type="text" class="sat_ctos_verif" placeholder="EX: CTO 01, 05 E 09"></div>
                     <div class="input-group"><label>COORDENADAS CTO MAIS PROXIMA</label><input type="text" class="sat_loc_cto_ordem" oninput="monitorarCoordenadas('${id}', this.value)"></div>
                     <button class="btn-primary" style="background: var(--accent-orange); width:100%; margin-top:25px;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO TÉCNICO</button>
                 </div>
@@ -295,37 +294,40 @@ function processarScriptIndividual(abaId) {
     const texto = aba.querySelector('.at_import_texto').value;
     if(!texto) return;
     const capturar = (regex) => { const match = texto.match(regex); return match ? match[1].trim() : ""; };
+    
     const os = capturar(/Ordem:\s*(\d+)/i);
     let ctoBruta = capturar(/CTO a validar:\s*(.*?)(?=Localização|$)/is) || capturar(/CTO Reservada:\s*(.*?)(?=Localização|$)/is);
-    let locRaw = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i) || capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i);
+    
+    let locCliente = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i);
+    let locCto = capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i);
 
     const ctoLimpada = limparIdCTO(ctoBruta);
     aba.querySelector('.at_os').value = os;
     aba.querySelector('.at_cto').value = ctoLimpada;
     aba.querySelector('.sat_cliente').value = os;
     aba.querySelector('.sat_ctovald').value = ctoLimpada;
-    aba.querySelector('.sat_loc_cli').value = locRaw; 
-    aba.querySelector('.sat_loc_cto_ordem').value = locRaw;
+    
+    aba.querySelector('.sat_loc_cli').value = locCliente; 
+    aba.querySelector('.sat_loc_cto_ordem').value = locCto;
     
     puxarCaminhoRedeAutomatico(abaId, ctoLimpada);
 
-    if(locRaw) monitorarCoordenadas(abaId, locRaw);
+    if(locCliente) monitorarCoordenadas(abaId, locCliente);
+    else if(locCto) monitorarCoordenadas(abaId, locCto);
 
     const modeloBruto = capturar(/Portas da CTO:\s*(\d+)/i);
     const modelo = modeloBruto.includes("8") ? "8 PORTAS" : "16 PORTAS";
     aba.querySelector('.at_modelo_cto').value = modelo;
     atualizarInterfaceAT(abaId, modelo);
 
-    // REGRAS DE MAPEAMENTO "SEM ID" (Incluindo regra de Menor que 3 dígitos)
     for(let i=1; i<=parseInt(modelo); i++){
         const rPorta = new RegExp(`IDENTIFICAÇÃO PORTA ${i}:\\s*(.*)`, "i");
         let v = capturar(rPorta).toUpperCase().trim();
         
         const padraoZeros = /^[0]+$/; 
-        const tresDigitosPuros = /^\d{3}$/; // Aqui mantemos a lógica que 3 dígitos puros (ex: 123) também é SEM ID conforme regra anterior
+        const tresDigitosPuros = /^\d{3}$/; 
         const contemLetrasOuSimbolos = /[A-ZÀ-Ú!@#$%^&*()]/i; 
 
-        // NOVA REGRA: v.length < 3 (cobre 0, 1 e 2 caracteres)
         if(v === "" || v === "NT" || v.length < 3 || v.includes("{{") || v.includes("SEM ID") || padraoZeros.test(v) || tresDigitosPuros.test(v) || (contemLetrasOuSimbolos.test(v) && v.length < 3)) {
             v = "SEM ID";
         }
@@ -381,7 +383,6 @@ function gerarScriptSaturada(id) {
     s += `DATA: ${dataAtual}\n`;
     s += `ID Chat: ${idChatGeral}\n`;
     s += `Cidade: ${get('sat_cidade')}\n`;
-    s += `Atendimento: ${get('sat_cliente')}\n`;
     s += `Cliente: ${get('sat_cliente')}\n`;
     s += `CTO Validada: ${get('sat_ctovald')}\n`;
     s += `Loc. Cliente: ${get('sat_loc_cli')}\n`;
@@ -396,34 +397,24 @@ function gerarScriptSaturada(id) {
 
 function salvarAtendimento(id) {
     const btnSave = document.getElementById(`btn-finish-${id}`);
-    
-    if(!dadosTemporarios[id]) {
-        gerarScript(id);
-    }
-    
+    if(!dadosTemporarios[id]) gerarScript(id);
     let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const d = dadosTemporarios[id];
-    
     if(!d.os || !d.cto) {
         showToast("OS E CTO SÃO OBRIGATÓRIOS!", "var(--accent-red)");
         return;
     }
-
     if (d.cto && d.caminho_rede) {
         let mapaCaminhos = JSON.parse(localStorage.getItem('mapa_cto_caminhos') || '{}');
         mapaCaminhos[d.cto] = d.caminho_rede;
         localStorage.setItem('mapa_cto_caminhos', JSON.stringify(mapaCaminhos));
     }
-
     d.id_reg = Date.now();
     d.timestamp = new Date().toLocaleString();
     hist.unshift(d);
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
-    
-    // FEEDBACK VISUAL NO BOTÃO PERSISTENTE
     btnSave.innerHTML = "✅ ARQUIVO SALVO!";
     btnSave.classList.add('success-anim');
-    
     showToast("ARQUIVO SALVO COM SUCESSO NO HISTÓRICO!");
     carregarHistorico();
 }
@@ -527,12 +518,9 @@ function limparForm(id) {
     aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko')) i.value = ''; });
     aba.querySelector('.sat_data').value = new Date().toISOString().split('T')[0];
     aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
-    
-    // RESET DO BOTAO DE SALVAR
     const btnSave = document.getElementById(`btn-finish-${id}`);
     btnSave.innerHTML = "✅ SALVAR NO HISTÓRICO";
     btnSave.classList.remove('success-anim');
-    
     dadosTemporarios[id] = null;
 }
 </script>
