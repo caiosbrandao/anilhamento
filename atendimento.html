@@ -54,7 +54,6 @@
         .porta-item { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: bold; }
         .porta-item input { height: 28px; padding: 4px 8px; }
 
-        /* DESIGN AJUSTADO: RESUMO COMPACTO E CLARO */
         .resumo-atendimento {
             margin-top: 12px;
             padding: 12px;
@@ -84,15 +83,14 @@
         .resumo-label { color: #8b949e; display: block; margin-bottom: 2px; font-size: 10px; font-weight: 600; }
         .resumo-valor {
             color: #ffffff;
-            font-size: 13px; /* Tamanho otimizado */
+            font-size: 13px;
             font-weight: 700;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             display: block;
         }
-        .resumo-item:nth-child(1) .resumo-valor, 
-        .resumo-item:nth-child(2) .resumo-valor { color: var(--accent-orange); }
+        .resumo-item.orange .resumo-valor { color: var(--accent-orange); }
         .resumo-item.full-width { grid-column: span 2; }
 
         .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
@@ -202,6 +200,10 @@ function adicionarNovaAba() {
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                     <div class="input-group"><label>ID CHAT</label><input type="text" class="at_chat" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="at_os" oninput="sincronizarResumo('${id}')"></div>
+                    
+                    <div class="input-group"><label>CONTRATO CLIENTE</label><input type="text" class="at_contrato" oninput="sincronizarPortaAuto('${id}')"></div>
+                    <div class="input-group"><label>NOME COMPLETO CLIENTE</label><input type="text" class="at_nome_cli" oninput="sincronizarPortaAuto('${id}')"></div>
+                    
                     <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value); sincronizarResumo('${id}');"></div>
                     <div class="input-group" style="grid-column:span 2"><label>CAMINHO DE REDE CTO</label><input type="text" class="at_caminho_rede"></div>
                     <div class="input-group" style="grid-column:span 2">
@@ -211,7 +213,7 @@ function adicionarNovaAba() {
                             <option value="8 PORTAS">8 PORTAS</option>
                         </select>
                     </div>
-                    <div class="input-group"><label>PORTA UTILIZADA</label><select class="at_plib_id"></select></div>
+                    <div class="input-group"><label>PORTA UTILIZADA</label><select class="at_plib_id" onchange="sincronizarPortaAuto('${id}')"></select></div>
                     <div class="input-group"><label>ID PORTA RETIRADA</label><input type="text" class="at_plib_num"></div>
                     <div class="input-group" style="grid-column:span 2">
                         <label>CORREÇÃO DE CAMINHO DA PORTA LIBERADA ?</label>
@@ -244,8 +246,12 @@ function adicionarNovaAba() {
                 <div class="resumo-atendimento">
                     <h4>🔍 RESUMO OPERACIONAL</h4>
                     <div class="resumo-grid">
-                        <div class="resumo-item"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span></div>
-                        <div class="resumo-item"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span></div>
+                        <div class="resumo-item orange"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span></div>
+                        <div class="resumo-item orange"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span></div>
+                        
+                        <div class="resumo-item"><span class="resumo-label">CONTRATO</span><span class="resumo-valor res-contrato">-</span></div>
+                        <div class="resumo-item"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span></div>
+
                         <div class="resumo-item"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span></div>
                         <div class="resumo-item"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span></div>
                         <div class="resumo-item full-width"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span></div>
@@ -294,12 +300,30 @@ function adicionarNovaAba() {
     showTab(id, btn);
 }
 
+function sincronizarPortaAuto(abaId) {
+    const aba = document.getElementById(abaId);
+    const contrato = aba.querySelector('.at_contrato').value.toUpperCase().trim();
+    const nome = aba.querySelector('.at_nome_cli').value.toUpperCase().trim();
+    const portaSel = aba.querySelector('.at_plib_id').value;
+
+    if (portaSel !== "NENHUMA" && (contrato !== "" || nome !== "")) {
+        const numPorta = portaSel.replace("PORTA ", "");
+        const inputPorta = aba.querySelector(`.pt${numPorta}`);
+        if (inputPorta) {
+            inputPorta.value = `USADO P${numPorta} - ${contrato} - ${nome}`;
+        }
+    }
+    sincronizarResumo(abaId);
+}
+
 function sincronizarResumo(abaId) {
     const aba = document.getElementById(abaId);
     const get = (cls) => aba.querySelector('.'+cls).value || '-';
 
     aba.querySelector('.res-chat').innerText = get('at_chat');
     aba.querySelector('.res-os').innerText = get('at_os');
+    aba.querySelector('.res-contrato').innerText = get('at_contrato');
+    aba.querySelector('.res-nome').innerText = get('at_nome_cli');
     aba.querySelector('.res-cto').innerText = get('at_cto');
     aba.querySelector('.res-cidade').innerText = get('sat_cidade');
     aba.querySelector('.res-loc-cto').innerText = get('sat_loc_cto_ordem');
@@ -448,7 +472,7 @@ function gerarScript(id) {
     const mod = get('at_modelo_cto');
     const obs = (aba.querySelector('.at_obs_select').value === 'MANUAL') ? get('at_obs_manual') : get('at_obs_select');
     
-    let s = `ID CHAT: ${get('at_chat')}\nORDEM DE SERVIÇO: ${get('at_os')}\nID CTO: ${get('at_cto')}\nCAMINHO DE REDE CTO: ${get('at_caminho_rede')}\nMODELO: ${mod}\nPORTA UTILIZADA: ${get('at_plib_id')} \nID PORTA RETIRADA:${get('at_plib_num')}\nCORREÇÃO CAMINHO PORTA UTILIZADA: ${get('at_correcao_caminho')}\nOBS: ${obs}\n\nMAPA:\n`;
+    let s = `ID CHAT: ${get('at_chat')}\nORDEM DE SERVIÇO: ${get('at_os')}\nCONTRATO: ${get('at_contrato')}\nCLIENTE: ${get('at_nome_cli')}\nID CTO: ${get('at_cto')}\nCAMINHO DE REDE CTO: ${get('at_caminho_rede')}\nMODELO: ${mod}\nPORTA UTILIZADA: ${get('at_plib_id')} \nID PORTA RETIRADA:${get('at_plib_num')}\nCORREÇÃO CAMINHO PORTA UTILIZADA: ${get('at_correcao_caminho')}\nOBS: ${obs}\n\nMAPA:\n`;
     
     let portasArr = [];
     for(let i=1; i<=parseInt(mod); i++){
@@ -461,6 +485,8 @@ function gerarScript(id) {
     dadosTemporarios[id] = { 
         chat: get('at_chat'), 
         os: get('at_os'), 
+        contrato: get('at_contrato'),
+        cliente: get('at_nome_cli'),
         cto: get('at_cto'), 
         caminho_rede: get('at_caminho_rede'),
         correcao: get('at_correcao_caminho'), 
@@ -619,6 +645,8 @@ function editarRegistro(id) {
     aba.querySelector('.at_id_reg').value = r.id_reg;
     aba.querySelector('.at_chat').value = r.chat;
     aba.querySelector('.at_os').value = r.os;
+    aba.querySelector('.at_contrato').value = r.contrato || '';
+    aba.querySelector('.at_nome_cli').value = r.cliente || '';
     aba.querySelector('.at_cto').value = r.cto;
     aba.querySelector('.at_caminho_rede').value = r.caminho_rede || '';
     aba.querySelector('.at_modelo_cto').value = r.modelo;
