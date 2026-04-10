@@ -314,14 +314,14 @@ function processarScriptIndividual(abaId) {
     for(let i=1; i<=parseInt(modelo); i++){
         const rPorta = new RegExp(`IDENTIFICAÇÃO PORTA ${i}:\\s*(.*)`, "i");
         let v = capturar(rPorta).toUpperCase().trim();
-        const padraoZeros = /^[0]+$/; 
-        const tresDigitosPuros = /^\d{3}$/; 
-        const contemLetrasOuSimbolos = /[A-ZÀ-Ú!@#$%^&*()]/i; 
-        if(v === "" || v === "NT" || v.length < 3 || v.includes("{{") || v.includes("SEM ID") || padraoZeros.test(v) || tresDigitosPuros.test(v) || (contemLetrasOuSimbolos.test(v) && v.length < 3)) {
-            v = "SEM ID";
-        }
+        
+        // REGRA SOLICITADA: SOMENTE APARECER QUANDO TIVER NO MINIMO 4 E NO MAXIMO 7 NUMEROS
+        const apenasNumerosValidos = /^\d{4,7}$/; 
+        
         const input = aba.querySelector(`.pt${i}`);
-        if(input) input.value = v; 
+        if(input) {
+            input.value = apenasNumerosValidos.test(v) ? v : ""; 
+        }
     }
     aba.querySelector('details').open = false;
     showToast("DADOS IMPORTADOS!");
@@ -338,7 +338,10 @@ function gerarScript(id) {
     let portasArr = [];
     for(let i=1; i<=parseInt(mod); i++){
         let v = aba.querySelector(`.pt${i}`).value.toUpperCase().trim();
+        
+        // REGRA SOLICITADA: SE O CAMPO ESTIVER EM BRANCO NO FORMULARIO, APARECER "SEM ID" NO SCRIPT
         if (v === "" || v === "LIVRE") v = "SEM ID";
+        
         portasArr.push(v);
         s += `P${i.toString().padStart(2,'0')}: ${v}\n`;
     }
