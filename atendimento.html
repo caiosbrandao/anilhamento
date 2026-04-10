@@ -310,7 +310,7 @@ function sincronizarPortaAuto(abaId) {
         const numPorta = portaSel.replace("PORTA ", "");
         const inputPorta = aba.querySelector(`.pt${numPorta}`);
         if (inputPorta) {
-            inputPorta.value = `USADO P${numPorta} - ${contrato} - ${nome}`;
+            inputPorta.value = `USOU A PORTA ${numPorta} - ${contrato} - ${nome}`;
         }
     }
     sincronizarResumo(abaId);
