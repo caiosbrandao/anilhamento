@@ -32,7 +32,6 @@
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 10000; }
         .modal-card { background: var(--bg-container); border: 1px solid var(--accent-red); border-radius: 15px; padding: 35px; width: 420px; text-align: center; box-shadow: 0 0 40px rgba(214, 48, 49, 0.3); animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-card h2 { color: var(--accent-red); margin-top: 0; font-size: 20px; letter-spacing: 1px; }
         .modal-card p { color: var(--text-main); font-size: 13px; margin: 20px 0; line-height: 1.6; }
         .modal-btns { display: flex; gap: 12px; justify-content: center; }
@@ -42,24 +41,65 @@
         .btn-modal-cancel { background: #485e74; color: white; }
 
         .grid-main { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .input-group { margin-bottom: 10px; }
+        .input-group { margin-bottom: 10px; position: relative; }
         .input-group label { font-size: 10px; font-weight: 700; margin-bottom: 4px; display: block; color: #8b949e; }
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-main); font-size: 12px; box-sizing: border-box; outline: none; text-transform: uppercase; transition: 0.3s; }
         
+        .btn-open-link { position: absolute; right: 5px; top: 18px; background: var(--accent-orange); border: none; border-radius: 4px; color: white; padding: 4px 8px; cursor: pointer; font-size: 12px; display: none; z-index: 5; }
+
         .saturada-container { background: #1e1515; border: 1px solid var(--accent-red); border-radius: 8px; padding: 20px; margin-top: 25px; display: none; }
         .saturada-container.active { display: block; animation: slideDown 0.3s ease; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         .portas-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; background: var(--card-before); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
         .porta-item { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: bold; }
         .porta-item input { height: 28px; padding: 4px 8px; }
+
+        /* DESIGN AJUSTADO: RESUMO COMPACTO E CLARO */
+        .resumo-atendimento {
+            margin-top: 12px;
+            padding: 12px;
+            background: #1c2128;
+            border: 2px solid var(--header-color);
+            border-radius: 10px;
+        }
+        .resumo-atendimento h4 {
+            color: var(--header-color);
+            margin: 0 0 10px 0;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+        .resumo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .resumo-item {
+            background: #0d1117;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .resumo-label { color: #8b949e; display: block; margin-bottom: 2px; font-size: 10px; font-weight: 600; }
+        .resumo-valor {
+            color: #ffffff;
+            font-size: 13px; /* Tamanho otimizado */
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+        }
+        .resumo-item:nth-child(1) .resumo-valor, 
+        .resumo-item:nth-child(2) .resumo-valor { color: var(--accent-orange); }
+        .resumo-item.full-width { grid-column: span 2; }
 
         .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .btn-primary { background: var(--header-color); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; flex: 1; text-transform: uppercase; min-width: 150px; transition: 0.3s; }
         .btn-sat-toggle { background: var(--accent-orange); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; padding: 12px; flex: 1; min-width: 150px; }
         .btn-copy { background: var(--accent-green); color: white; display: none; margin-top: 10px; width: 100%; padding: 12px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; }
         .btn-finish { background: var(--accent-green); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; padding: 12px; flex: 1; min-width: 150px; transition: 0.3s; }
-        .btn-finish.success-anim { background: #ffffff !important; color: #000 !important; transform: scale(1.05); }
         .btn-clear { background: #485e74; color: white; width: 60px; border: none; border-radius: 6px; cursor: pointer; }
         
         .script-output { background: #011627; color: #addb67; padding: 15px; border-radius: 8px; font-family: 'Consolas', monospace; display: none; white-space: pre-wrap; border-left: 4px solid var(--accent-green); font-size: 12px; margin-top: 15px; }
@@ -160,9 +200,9 @@ function adicionarNovaAba() {
             <div>
                 <h3 style="color:var(--header-color)">📋 REGISTRO DE ATENDIMENTO</h3>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div class="input-group"><label>ID CHAT</label><input type="text" class="at_chat"></div>
-                    <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="at_os"></div>
-                    <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value)"></div>
+                    <div class="input-group"><label>ID CHAT</label><input type="text" class="at_chat" oninput="sincronizarResumo('${id}')"></div>
+                    <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="at_os" oninput="sincronizarResumo('${id}')"></div>
+                    <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value); sincronizarResumo('${id}');"></div>
                     <div class="input-group" style="grid-column:span 2"><label>CAMINHO DE REDE CTO</label><input type="text" class="at_caminho_rede"></div>
                     <div class="input-group" style="grid-column:span 2">
                         <label>MODELO CTO</label>
@@ -200,6 +240,18 @@ function adicionarNovaAba() {
             <div>
                 <h3 style="opacity:0.7">🔌 MAPEAR PORTAS</h3>
                 <div class="portas-container" id="grid-${id}"></div>
+
+                <div class="resumo-atendimento">
+                    <h4>🔍 RESUMO OPERACIONAL</h4>
+                    <div class="resumo-grid">
+                        <div class="resumo-item"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span></div>
+                        <div class="resumo-item"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span></div>
+                        <div class="resumo-item"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span></div>
+                        <div class="resumo-item"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span></div>
+                        <div class="resumo-item full-width"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span></div>
+                        <div class="resumo-item full-width"><span class="resumo-label">COORD. CLIENTE</span><span class="resumo-valor res-loc-cli">-</span></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -209,14 +261,22 @@ function adicionarNovaAba() {
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                     <div class="input-group"><label>BKO RESPONSÁVEL</label><input type="text" class="sat_bko" value="CAIO BRANDÃO"></div>
                     <div class="input-group"><label>DATA</label><input type="date" class="sat_data"></div>
-                    <div class="input-group"><label>CIDADE/UF</label><input type="text" class="sat_cidade"></div>
+                    <div class="input-group"><label>CIDADE/UF</label><input type="text" class="sat_cidade" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO (ATENDIMENTO)</label><input type="text" class="sat_cliente"></div>
                     <div class="input-group"><label>CTO VALIDADA</label><input type="text" class="sat_ctovald"></div>
-                    <div class="input-group"><label>COORDENADAS CLIENTE</label><input type="text" class="sat_loc_cli" oninput="monitorarCoordenadas('${id}', this.value)"></div>
+                    <div class="input-group">
+                        <label>COORDENADAS CLIENTE</label>
+                        <input type="text" class="sat_loc_cli" oninput="monitorarCoordenadas('${id}', this.value, this); sincronizarResumo('${id}');">
+                        <button class="btn-open-link" onclick="abrirLinkExterno(this)">🌐</button>
+                    </div>
                     <div class="input-group" style="grid-column: span 2"><label>MOTIVO / PARECER TÉCNICO</label><textarea class="sat_obs" placeholder="DESCREVA A ANÁLISE FEITA NO LOCAL..."></textarea></div>
                 </div>
                 <div>
-                    <div class="input-group"><label>COORDENADAS CTO MAIS PROXIMA</label><input type="text" class="sat_loc_cto_ordem" oninput="monitorarCoordenadas('${id}', this.value)"></div>
+                    <div class="input-group">
+                        <label>COORDENADAS CTO MAIS PROXIMA</label>
+                        <input type="text" class="sat_loc_cto_ordem" oninput="monitorarCoordenadas('${id}', this.value, this); sincronizarResumo('${id}');">
+                        <button class="btn-open-link" onclick="abrirLinkExterno(this)">🌐</button>
+                    </div>
                     <button class="btn-primary" style="background: var(--accent-orange); width:100%; margin-top:25px;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO TÉCNICO</button>
                 </div>
             </div>
@@ -234,6 +294,32 @@ function adicionarNovaAba() {
     showTab(id, btn);
 }
 
+function sincronizarResumo(abaId) {
+    const aba = document.getElementById(abaId);
+    const get = (cls) => aba.querySelector('.'+cls).value || '-';
+
+    aba.querySelector('.res-chat').innerText = get('at_chat');
+    aba.querySelector('.res-os').innerText = get('at_os');
+    aba.querySelector('.res-cto').innerText = get('at_cto');
+    aba.querySelector('.res-cidade').innerText = get('sat_cidade');
+    aba.querySelector('.res-loc-cto').innerText = get('sat_loc_cto_ordem');
+    aba.querySelector('.res-loc-cli').innerText = get('sat_loc_cli');
+}
+
+function abrirLinkExterno(btn) {
+    const input = btn.previousElementSibling;
+    if (input && input.value.includes('http')) {
+        window.open(input.value, '_blank', 'width=1000,height=800');
+    }
+}
+
+function extrairCoordenadasDeTexto(texto) {
+    if (!texto) return "";
+    const regexCoords = /(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/;
+    const match = texto.match(regexCoords);
+    return match ? `${match[1]},${match[2]}` : texto.trim();
+}
+
 function puxarCaminhoRedeAutomatico(abaId, idCto) {
     if (!idCto) return;
     const ctoLimpa = idCto.trim().toUpperCase();
@@ -245,18 +331,31 @@ function puxarCaminhoRedeAutomatico(abaId, idCto) {
 }
 
 let timerBusca;
-function monitorarCoordenadas(abaId, valor) {
+function monitorarCoordenadas(abaId, valor, campoElemento) {
     clearTimeout(timerBusca);
-    if (!valor) return;
-    let coordsParaBusca = valor;
-    if (valor.includes('@')) {
-        const m = valor.match(/@([\-\d\.]+),([\-\d\.]+)/);
-        if (m) coordsParaBusca = `${m[1]},${m[2]}`;
+    if (!valor) {
+        if(campoElemento) campoElemento.nextElementSibling.style.display = 'none';
+        return;
     }
-    timerBusca = setTimeout(() => {
-        if (/[0-9]/.test(coordsParaBusca) && coordsParaBusca.includes(',')) {
-            buscarCidadePorCoordenadas(abaId, coordsParaBusca);
+
+    if (campoElemento) {
+        campoElemento.nextElementSibling.style.display = valor.includes('http') ? 'block' : 'none';
+    }
+
+    const coordsLimpas = extrairCoordenadasDeTexto(valor);
+    
+    if (coordsLimpas !== valor && coordsLimpas.includes(',')) {
+        if(campoElemento) {
+            campoElemento.value = coordsLimpas;
+            campoElemento.nextElementSibling.style.display = 'none';
         }
+    }
+
+    timerBusca = setTimeout(() => {
+        if (/[0-9]/.test(coordsLimpas) && coordsLimpas.includes(',')) {
+            buscarCidadePorCoordenadas(abaId, coordsLimpas);
+        }
+        sincronizarResumo(abaId);
     }, 800);
 }
 
@@ -282,6 +381,7 @@ async function buscarCidadePorCoordenadas(abaId, coordenadas) {
             const uf = data.address['ISO3166-2-lvl4'] ? data.address['ISO3166-2-lvl4'].split('-')[1] : estado;
             if (cidade) {
                 document.getElementById(abaId).querySelector('.sat_cidade').value = `${cidade.toUpperCase()} / ${uf.toUpperCase()}`;
+                sincronizarResumo(abaId);
                 showToast(`LOCALIZADO: ${cidade}`);
             }
         }
@@ -294,36 +394,51 @@ function processarScriptIndividual(abaId) {
     if(!texto) return;
     const capturar = (regex) => { const match = texto.match(regex); return match ? match[1].trim() : ""; };
     const os = capturar(/Ordem:\s*(\d+)/i);
+    const chat = capturar(/ID Chat:\s*(\w+)/i);
     let ctoBruta = capturar(/CTO a validar:\s*(.*?)(?=Localização|$)/is) || capturar(/CTO Reservada:\s*(.*?)(?=Localização|$)/is);
-    let locCliente = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i);
-    let locCto = capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i);
+    
+    let locClienteRaw = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i);
+    let locCtoRaw = capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i);
+
+    const locCliente = extrairCoordenadasDeTexto(locClienteRaw);
+    const locCto = extrairCoordenadasDeTexto(locCtoRaw);
+
     const ctoLimpada = limparIdCTO(ctoBruta);
+    aba.querySelector('.at_chat').value = chat;
     aba.querySelector('.at_os').value = os;
     aba.querySelector('.at_cto').value = ctoLimpada;
     aba.querySelector('.sat_cliente').value = os;
     aba.querySelector('.sat_ctovald').value = ctoLimpada;
-    aba.querySelector('.sat_loc_cli').value = locCliente; 
-    aba.querySelector('.sat_loc_cto_ordem').value = locCto;
+    
+    const campoLocCli = aba.querySelector('.sat_loc_cli');
+    const campoLocCto = aba.querySelector('.sat_loc_cto_ordem');
+    
+    campoLocCli.value = locCliente; 
+    campoLocCto.value = locCto;
+
     puxarCaminhoRedeAutomatico(abaId, ctoLimpada);
-    if(locCliente) monitorarCoordenadas(abaId, locCliente);
-    else if(locCto) monitorarCoordenadas(abaId, locCto);
+    
+    monitorarCoordenadas(abaId, locCliente, campoLocCli);
+    monitorarCoordenadas(abaId, locCto, campoLocCto);
+
     const modeloBruto = capturar(/Portas da CTO:\s*(\d+)/i);
     const modelo = modeloBruto.includes("8") ? "8 PORTAS" : "16 PORTAS";
     aba.querySelector('.at_modelo_cto').value = modelo;
     atualizarInterfaceAT(abaId, modelo);
+    
     for(let i=1; i<=parseInt(modelo); i++){
         const rPorta = new RegExp(`IDENTIFICAÇÃO PORTA ${i}:\\s*(.*)`, "i");
         let v = capturar(rPorta).toUpperCase().trim();
-        
-        // REGRA SOLICITADA: SOMENTE APARECER QUANDO TIVER NO MINIMO 4 E NO MAXIMO 7 NUMEROS
-        const apenasNumerosValidos = /^\d{4,7}$/; 
-        
-        const input = aba.querySelector(`.pt${i}`);
-        if(input) {
-            input.value = apenasNumerosValidos.test(v) ? v : ""; 
+        const padraoZeros = /^[0]+$/; 
+        const tresDigitosPuros = /^\d{3}$/; 
+        if(v === "" || v === "NT" || v.length < 3 || v.includes("{{") || v.includes("SEM ID") || padraoZeros.test(v) || tresDigitosPuros.test(v)) {
+            v = "SEM ID";
         }
+        const input = aba.querySelector(`.pt${i}`);
+        if(input) input.value = v; 
     }
     aba.querySelector('details').open = false;
+    sincronizarResumo(abaId);
     showToast("DADOS IMPORTADOS!");
 }
 
@@ -338,10 +453,7 @@ function gerarScript(id) {
     let portasArr = [];
     for(let i=1; i<=parseInt(mod); i++){
         let v = aba.querySelector(`.pt${i}`).value.toUpperCase().trim();
-        
-        // REGRA SOLICITADA: SE O CAMPO ESTIVER EM BRANCO NO FORMULARIO, APARECER "SEM ID" NO SCRIPT
         if (v === "" || v === "LIVRE") v = "SEM ID";
-        
         portasArr.push(v);
         s += `P${i.toString().padStart(2,'0')}: ${v}\n`;
     }
@@ -397,7 +509,6 @@ function salvarAtendimento(id) {
         return;
     }
 
-    // Captura dados de saturação
     const satMotivo = aba.querySelector('.sat_obs').value;
     if (satMotivo && satMotivo.trim() !== "") {
         d.saturada = {
@@ -419,18 +530,15 @@ function salvarAtendimento(id) {
 
     let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
 
-    // LÓGICA DE ATUALIZAÇÃO OU CRIAÇÃO
     if (inputIdReg.value) {
-        // Se a aba já tem um ID, procura no histórico e atualiza
         const index = hist.findIndex(x => x.id_reg == inputIdReg.value);
         if (index !== -1) {
             d.id_reg = parseInt(inputIdReg.value);
-            d.timestamp = hist[index].timestamp; // Mantém a data original da criação
-            d.last_update = new Date().toLocaleString(); // Registra última modificação
+            d.timestamp = hist[index].timestamp;
+            d.last_update = new Date().toLocaleString();
             hist[index] = d;
             showToast("REGISTRO ATUALIZADO!");
         } else {
-            // Caso o ID tenha sido removido do histórico por fora, cria um novo
             d.id_reg = Date.now();
             d.timestamp = new Date().toLocaleString();
             inputIdReg.value = d.id_reg;
@@ -438,7 +546,6 @@ function salvarAtendimento(id) {
             showToast("ARQUIVO SALVO!");
         }
     } else {
-        // Novo registro
         d.id_reg = Date.now();
         d.timestamp = new Date().toLocaleString();
         inputIdReg.value = d.id_reg;
@@ -447,13 +554,14 @@ function salvarAtendimento(id) {
     }
     
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
-    
     btnSave.innerHTML = "✅ ATUALIZADO!";
-    btnSave.classList.add('success-anim');
     carregarHistorico();
 }
 
-function atualizarMetricasPorDia(hist) {
+function carregarHistorico() {
+    const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
+    const tbody = document.querySelector('#tabelaHist tbody');
+    
     const container = document.getElementById('metrics-daily');
     container.innerHTML = '';
     const contagem = {};
@@ -470,12 +578,7 @@ function atualizarMetricasPorDia(hist) {
     Object.keys(contagem).forEach(data => {
         container.innerHTML += `<div class="metric-card"><div class="metric-day">${data}</div><div class="metric-qty">${contagem[data]}</div></div>`;
     });
-}
 
-function carregarHistorico() {
-    const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
-    const tbody = document.querySelector('#tabelaHist tbody');
-    atualizarMetricasPorDia(hist);
     tbody.innerHTML = hist.map(r => `
         <tr>
             <td>${r.timestamp}</td>
@@ -513,9 +616,7 @@ function editarRegistro(id) {
     let abaId = document.querySelector('.tab-content:not(#tab-historico)').id;
     const aba = document.getElementById(abaId);
     
-    // Seta o ID do registro na aba para que o salvar saiba que deve atualizar este item
     aba.querySelector('.at_id_reg').value = r.id_reg;
-    
     aba.querySelector('.at_chat').value = r.chat;
     aba.querySelector('.at_os').value = r.os;
     aba.querySelector('.at_cto').value = r.cto;
@@ -529,12 +630,16 @@ function editarRegistro(id) {
         aba.querySelector('.sat_data').value = r.saturada.data;
         aba.querySelector('.sat_cidade').value = r.saturada.cidade;
         aba.querySelector('.sat_ctovald').value = r.saturada.cto_validada;
-        aba.querySelector('.sat_loc_cli').value = r.saturada.loc_cli;
-        aba.querySelector('.sat_loc_cto_ordem').value = r.saturada.loc_cto;
+        const locCliInput = aba.querySelector('.sat_loc_cli');
+        const locCtoInput = aba.querySelector('.sat_loc_cto_ordem');
+        locCliInput.value = r.saturada.loc_cli;
+        locCtoInput.value = r.saturada.loc_cto;
+        monitorarCoordenadas(abaId, r.saturada.loc_cli, locCliInput);
+        monitorarCoordenadas(abaId, r.saturada.loc_cto, locCtoInput);
         aba.querySelector('.sat_obs').value = r.saturada.parecer;
         document.getElementById(`sat-form-${abaId}`).classList.add('active');
     }
-
+    sincronizarResumo(abaId);
     showTab(abaId, document.getElementById(`btn-${abaId}`));
 }
 
@@ -556,7 +661,7 @@ function atualizarInterfaceAT(id, modelo) {
     const sel = document.querySelector(`#${id} .at_plib_id`);
     let o = '<option value="NENHUMA">NENHUMA</option>';
     for(let i=1; i<=qtd; i++){
-        grid.innerHTML += `<div class="porta-item"><span>P${i}</span><input type="text" class="pt${i}" placeholder="ID"></div>`;
+        grid.innerHTML += `<div class="porta-item"><span>P${i}</span><input type="text" class="pt${i}" placeholder="ID" oninput="sincronizarResumo('${id}')"></div>`;
         o += `<option value="PORTA ${i}">PORTA ${i}</option>`;
     }
     sel.innerHTML = o;
@@ -571,15 +676,13 @@ function filtrarHistorico() {
 
 function limparForm(id) {
     const aba = document.getElementById(id);
-    aba.querySelector('.at_id_reg').value = ''; // Limpa o ID vinculado
+    aba.querySelector('.at_id_reg').value = ''; 
     aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko') && i.type !== 'hidden') i.value = ''; });
     aba.querySelector('.sat_data').value = new Date().toISOString().split('T')[0];
     aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
+    aba.querySelectorAll('.btn-open-link').forEach(btn => btn.style.display = 'none');
     document.getElementById(`sat-form-${id}`).classList.remove('active');
-    const btnSave = document.getElementById(`btn-finish-${id}`);
-    btnSave.innerHTML = "✅ SALVAR NO HISTÓRICO";
-    btnSave.classList.remove('success-anim');
-    dadosTemporarios[id] = null;
+    sincronizarResumo(id);
 }
 </script>
 </body>
