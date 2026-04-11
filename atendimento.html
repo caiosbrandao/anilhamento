@@ -79,8 +79,12 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        .resumo-label { color: #8b949e; display: block; margin-bottom: 2px; font-size: 10px; font-weight: 600; }
+        .resumo-item:hover { background: #161b22; border-color: var(--header-color); }
+        .resumo-label { color: #8b949e; display: block; margin-bottom: 2px; font-size: 10px; font-weight: 600; pointer-events: none; }
         .resumo-valor {
             color: #ffffff;
             font-size: 13px;
@@ -89,9 +93,12 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             display: block;
+            pointer-events: none;
         }
         .resumo-item.orange .resumo-valor { color: var(--accent-orange); }
         .resumo-item.full-width { grid-column: span 2; }
+        .copy-icon-small { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.3; }
+        .resumo-item:hover .copy-icon-small { opacity: 1; color: var(--header-color); }
 
         .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .btn-primary { background: var(--header-color); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; flex: 1; text-transform: uppercase; min-width: 150px; transition: 0.3s; }
@@ -246,16 +253,16 @@ function adicionarNovaAba() {
                 <div class="resumo-atendimento">
                     <h4>🔍 RESUMO OPERACIONAL</h4>
                     <div class="resumo-grid">
-                        <div class="resumo-item orange"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span></div>
-                        <div class="resumo-item orange"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span></div>
+                        <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span><span class="copy-icon-small">📋</span></div>
+                        <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span><span class="copy-icon-small">📋</span></div>
                         
-                        <div class="resumo-item"><span class="resumo-label">CONTRATO</span><span class="resumo-valor res-contrato">-</span></div>
-                        <div class="resumo-item"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span></div>
+                        <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CONTRATO</span><span class="resumo-valor res-contrato">-</span><span class="copy-icon-small">📋</span></div>
+                        <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span><span class="copy-icon-small">📋</span></div>
 
-                        <div class="resumo-item"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span></div>
-                        <div class="resumo-item"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span></div>
-                        <div class="resumo-item full-width"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span></div>
-                        <div class="resumo-item full-width"><span class="resumo-label">COORD. CLIENTE</span><span class="resumo-valor res-loc-cli">-</span></div>
+                        <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span><span class="copy-icon-small">📋</span></div>
+                        <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span><span class="copy-icon-small">📋</span></div>
+                        <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span><span class="copy-icon-small">📋</span></div>
+                        <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CLIENTE</span><span class="resumo-valor res-loc-cli">-</span><span class="copy-icon-small">📋</span></div>
                     </div>
                 </div>
             </div>
@@ -298,6 +305,15 @@ function adicionarNovaAba() {
     campoData.value = new Date().toISOString().split('T')[0];
 
     showTab(id, btn);
+}
+
+function copiarValorResumo(elemento) {
+    const valor = elemento.querySelector('.resumo-valor').innerText;
+    if (valor !== "-") {
+        navigator.clipboard.writeText(valor).then(() => {
+            showToast(`COPIADO: ${valor}`);
+        });
+    }
 }
 
 function sincronizarPortaAuto(abaId) {
@@ -472,7 +488,8 @@ function gerarScript(id) {
     const mod = get('at_modelo_cto');
     const obs = (aba.querySelector('.at_obs_select').value === 'MANUAL') ? get('at_obs_manual') : get('at_obs_select');
     
-    let s = `ID CHAT: ${get('at_chat')}\nORDEM DE SERVIÇO: ${get('at_os')}\nCONTRATO: ${get('at_contrato')}\nCLIENTE: ${get('at_nome_cli')}\nID CTO: ${get('at_cto')}\nCAMINHO DE REDE CTO: ${get('at_caminho_rede')}\nMODELO: ${mod}\nPORTA UTILIZADA: ${get('at_plib_id')} \nID PORTA RETIRADA:${get('at_plib_num')}\nCORREÇÃO CAMINHO PORTA UTILIZADA: ${get('at_correcao_caminho')}\nOBS: ${obs}\n\nMAPA:\n`;
+    // Removido CONTRATO e CLIENTE do script gerado conforme pedido
+    let s = `ID CHAT: ${get('at_chat')}\nORDEM DE SERVIÇO: ${get('at_os')}\nID CTO: ${get('at_cto')}\nCAMINHO DE REDE CTO: ${get('at_caminho_rede')}\nMODELO: ${mod}\nPORTA UTILIZADA: ${get('at_plib_id')} \nID PORTA RETIRADA:${get('at_plib_num')}\nCORREÇÃO CAMINHO PORTA UTILIZADA: ${get('at_correcao_caminho')}\nOBS: ${obs}\n\nMAPA:\n`;
     
     let portasArr = [];
     for(let i=1; i<=parseInt(mod); i++){
