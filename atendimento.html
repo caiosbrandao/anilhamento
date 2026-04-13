@@ -9,14 +9,12 @@
             --border-color: #30363d; --input-bg: #0d1117; --header-color: #58a6ff;
             --card-before: #21262d; --accent-green: #00b894; --accent-red: #d63031;
             --accent-orange: #e67e22; --accent-purple: #a29bfe;
-            /* Vermelho Suave para Alertas */
             --soft-error: rgba(214, 48, 49, 0.25);
             --soft-error-border: #852626;
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); padding: 20px; color: var(--text-main); margin: 0; text-transform: uppercase; }
         .container { max-width: 1450px; margin: auto; background: var(--bg-container); padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border-color); position: relative; }
         
-        /* ALERTA DE CAMPO VAZIO */
         .input-error {
             border: 1px solid var(--soft-error-border) !important;
             background: var(--soft-error) !important;
@@ -212,6 +210,23 @@ function showToast(msg, color = 'var(--accent-green)') {
 
 function fecharModal() { document.getElementById('modalConfirm').style.display = 'none'; }
 
+function abrirModalExcluir(id) {
+    idParaRemover = id;
+    document.getElementById('modalConfirm').style.display = 'flex';
+    document.getElementById('btnConfirmarExcluir').onclick = function() {
+        confirmarExclusao();
+    };
+}
+
+function confirmarExclusao() {
+    let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
+    hist = hist.filter(x => x.id_reg != idParaRemover);
+    localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
+    fecharModal();
+    carregarHistorico();
+    showToast("REGISTRO EXCLUÍDO!", "var(--accent-red)");
+}
+
 function validarCamposTempoReal(abaId) {
     const aba = document.getElementById(abaId);
     if (!aba) return;
@@ -344,6 +359,34 @@ function adicionarNovaAba() {
     document.getElementById(id).querySelector('.sat_data').value = new Date().toLocaleDateString('pt-BR');
     validarCamposTempoReal(id);
     showTab(id, btn);
+}
+
+function atualizarMetricas() {
+    const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
+    const metricasDiv = document.getElementById('metrics-daily');
+    if (!metricasDiv) return;
+
+    const contagemDias = {};
+    for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dataFormatada = d.toLocaleDateString('pt-BR');
+        contagemDias[dataFormatada] = 0;
+    }
+
+    hist.forEach(r => {
+        const dataRegistro = r.timestamp.split(',')[0].trim();
+        if (contagemDias.hasOwnProperty(dataRegistro)) {
+            contagemDias[dataRegistro]++;
+        }
+    });
+
+    metricasDiv.innerHTML = Object.keys(contagemDias).map(dia => `
+        <div class="metric-card">
+            <div class="metric-day">${dia === new Date().toLocaleDateString('pt-BR') ? 'HOJE' : dia}</div>
+            <div class="metric-qty">${contagemDias[dia]}</div>
+        </div>
+    `).reverse().join('');
 }
 
 function gerarScriptSaturada(id) {
@@ -538,58 +581,141 @@ function gerarScript(id) {
 function salvarAtendimento(id) {
     const aba = document.getElementById(id);
     const btnSave = document.getElementById(`btn-finish-${id}`);
-    if (Array.from(aba.querySelectorAll('.input-error')).length > 0) {
-        showToast("PREENCHA TODOS OS CAMPOS EM ALERTA!", "var(--accent-red)");
+    
+    const getVal = (cls) => {
+        const el = aba.querySelector('.'+cls);
+        return el ? el.value.toUpperCase().trim() : '';
+    };
+
+    if (!getVal('at_chat') || !getVal('at_os') || !getVal('at_cto')) {
+        showToast("PREENCHA OS CAMPOS OBRIGATÓRIOS!", "var(--accent-red)");
         return;
     }
-    const getVal = (cls) => (aba.querySelector('.'+cls).value || '').toUpperCase().trim();
+
     let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     let portasAtuais = [];
-    const qtd = parseInt(getVal('at_modelo_cto'));
-    for(let i=1; i<=qtd; i++) portasAtuais.push(aba.querySelector(`.pt${i}`).value.toUpperCase().trim() || "SEM ID");
+    const modeloTexto = getVal('at_modelo_cto');
+    const qtd = parseInt(modeloTexto);
+    
+    for(let i=1; i<=qtd; i++) {
+        const ptInput = aba.querySelector(`.pt${i}`);
+        portasAtuais.push(ptInput ? ptInput.value.toUpperCase().trim() : "SEM ID");
+    }
+
+    const regIdExistente = aba.querySelector('.at_id_reg').value;
 
     let dados = {
-        id_reg: aba.querySelector('.at_id_reg').value || Date.now(),
+        id_reg: regIdExistente || Date.now(),
         timestamp: new Date().toLocaleString(),
-        chat: getVal('at_chat'), os: getVal('at_os'), contrato: getVal('at_contrato'), cliente: getVal('at_nome_cli'),
-        cto: getVal('at_cto'), caminho_rede: getVal('at_caminho_rede'), modelo: getVal('at_modelo_cto'),
-        porta_utilizada: getVal('at_plib_id'), porta_retirada: getVal('at_plib_num'), correcao: getVal('at_correcao_caminho'),
+        chat: getVal('at_chat'), 
+        os: getVal('at_os'), 
+        contrato: getVal('at_contrato'), 
+        cliente: getVal('at_nome_cli'),
+        cto: getVal('at_cto'), 
+        caminho_rede: getVal('at_caminho_rede'), 
+        modelo: modeloTexto,
+        porta_utilizada: getVal('at_plib_id'), 
+        porta_retirada: getVal('at_plib_num'), 
+        correcao: getVal('at_correcao_caminho'),
         obs: (aba.querySelector('.at_obs_select').value === 'MANUAL') ? getVal('at_obs_manual') : getVal('at_obs_select'),
-        portas: portasAtuais
+        portas: portasAtuais,
+        // Novos campos para salvar o relatório de saturação
+        sat_bko: getVal('sat_bko'),
+        sat_data: getVal('sat_data'),
+        sat_cidade: getVal('sat_cidade'),
+        sat_loc_cli: getVal('sat_loc_cli'),
+        sat_loc_cto: getVal('sat_loc_cto_ordem'),
+        sat_obs: getVal('sat_obs')
     };
 
     const idx = hist.findIndex(x => x.id_reg == dados.id_reg);
-    if(idx !== -1) hist[idx] = dados; else hist.unshift(dados);
+    if(idx !== -1) {
+        hist[idx] = dados;
+    } else {
+        hist.unshift(dados);
+    }
     
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
     btnSave.innerHTML = "✅ SALVO!";
     setTimeout(() => { btnSave.innerHTML = "✅ SALVAR NO HISTÓRICO"; }, 2000);
     carregarHistorico();
+    showToast("ATENDIMENTO SALVO COM SUCESSO!");
 }
 
 function carregarHistorico() {
     const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const tbody = document.querySelector('#tabelaHist tbody');
-    tbody.innerHTML = hist.map(r => `
-        <tr><td>${r.timestamp}</td><td>${r.chat}</td><td>${r.os}</td><td>${r.cto}</td><td>${r.correcao}</td><td>${r.obs}</td>
-        <td><button class="btn-action" style="background:var(--header-color)" onclick="editarRegistro(${r.id_reg})">✏️</button></td></tr>
-    `).join('');
+    if (tbody) {
+        tbody.innerHTML = hist.map(r => `
+            <tr>
+                <td>${r.timestamp}</td>
+                <td>${r.chat}</td>
+                <td>${r.os}</td>
+                <td>${r.cto}</td>
+                <td>${r.correcao}</td>
+                <td>${r.obs}</td>
+                <td>
+                    <button class="btn-action" style="background:var(--header-color)" onclick="editarRegistro(${r.id_reg})">✏️</button>
+                    <button class="btn-action" style="background:var(--accent-red)" onclick="abrirModalExcluir(${r.id_reg})">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    atualizarMetricas();
 }
 
 function editarRegistro(id) {
-    const r = JSON.parse(localStorage.getItem('atend_logs_v10')).find(x => x.id_reg === id);
+    const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || []);
+    const r = hist.find(x => x.id_reg == id);
     if(!r) return;
-    const abaId = document.querySelectorAll('.tab-content:not(#tab-historico)')[0].id;
+    
+    let abasAtivas = document.querySelectorAll('.tab-content:not(#tab-historico)');
+    let abaId;
+    if(abasAtivas.length > 0) {
+        abaId = abasAtivas[0].id;
+    } else {
+        adicionarNovaAba();
+        abaId = document.querySelectorAll('.tab-content:not(#tab-historico)')[0].id;
+    }
+    
     const aba = document.getElementById(abaId);
+    
     aba.querySelector('.at_id_reg').value = r.id_reg;
-    aba.querySelector('.at_chat').value = r.chat;
-    aba.querySelector('.at_os').value = r.os;
-    aba.querySelector('.at_cto').value = r.cto;
-    aba.querySelector('.at_modelo_cto').value = r.modelo;
-    atualizarInterfaceAT(abaId, r.modelo);
-    if(r.portas) r.portas.forEach((p, i) => { const inp = aba.querySelector(`.pt${i+1}`); if(inp) inp.value = (p==="SEM ID"?"":p); });
+    aba.querySelector('.at_chat').value = r.chat || '';
+    aba.querySelector('.at_os').value = r.os || '';
+    aba.querySelector('.at_contrato').value = r.contrato || '';
+    aba.querySelector('.at_nome_cli').value = r.cliente || '';
+    aba.querySelector('.at_cto').value = r.cto || '';
+    aba.querySelector('.at_caminho_rede').value = r.caminho_rede || '';
+    aba.querySelector('.at_modelo_cto').value = r.modelo || '16 PORTAS';
+    
+    // Repopular campos de saturação
+    if(aba.querySelector('.sat_bko')) aba.querySelector('.sat_bko').value = r.sat_bko || 'CAIO BRANDÃO';
+    if(aba.querySelector('.sat_data')) aba.querySelector('.sat_data').value = r.sat_data || '';
+    if(aba.querySelector('.sat_cidade')) aba.querySelector('.sat_cidade').value = r.sat_cidade || '';
+    if(aba.querySelector('.sat_loc_cli')) aba.querySelector('.sat_loc_cli').value = r.sat_loc_cli || '';
+    if(aba.querySelector('.sat_loc_cto_ordem')) aba.querySelector('.sat_loc_cto_ordem').value = r.sat_loc_cto || '';
+    if(aba.querySelector('.sat_obs')) aba.querySelector('.sat_obs').value = r.sat_obs || '';
+    if(aba.querySelector('.sat_cliente')) aba.querySelector('.sat_cliente').value = r.os || '';
+    if(aba.querySelector('.sat_ctovald')) aba.querySelector('.sat_ctovald').value = r.cto || '';
+
+    atualizarInterfaceAT(abaId, r.modelo || '16 PORTAS');
+    
+    if(r.portas) {
+        r.portas.forEach((p, i) => { 
+            const inp = aba.querySelector(`.pt${i+1}`); 
+            if(inp) inp.value = (p === "SEM ID" ? "" : p); 
+        });
+    }
+    
+    aba.querySelector('.at_plib_id').value = r.porta_utilizada || 'NENHUMA';
+    aba.querySelector('.at_plib_num').value = r.porta_retirada || '';
+    aba.querySelector('.at_correcao_caminho').value = r.correcao || 'NAO';
+    
     validarCamposTempoReal(abaId);
+    sincronizarResumo(abaId);
     showTab(abaId, document.getElementById(`btn-${abaId}`));
+    showToast("DADOS CARREGADOS PARA EDIÇÃO");
 }
 
 function toggleSaturada(id) { document.getElementById(`sat-form-${id}`).classList.toggle('active'); }
@@ -610,7 +736,11 @@ function atualizarInterfaceAT(id, modelo) {
     sel.innerHTML = o;
 }
 
-function toggleObsManual(id, val) { document.querySelector(`#${id} .at_obs_manual`).style.display = (val === 'MANUAL' ? 'block' : 'none'); }
+function toggleObsManual(id, val) { 
+    const area = document.querySelector(`#${id} .at_obs_manual`);
+    if(area) area.style.display = (val === 'MANUAL' ? 'block' : 'none'); 
+}
+
 function filtrarHistorico() {
     const v = document.getElementById('inputBusca').value.toUpperCase();
     document.querySelectorAll('#tabelaHist tbody tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(v) ? '' : 'none');
