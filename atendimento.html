@@ -9,14 +9,14 @@
             --border-color: #30363d; --input-bg: #0d1117; --header-color: #58a6ff;
             --card-before: #21262d; --accent-green: #00b894; --accent-red: #d63031;
             --accent-orange: #e67e22; --accent-purple: #a29bfe;
-            /* Novo Vermelho Suave */
+            /* Vermelho Suave para Alertas */
             --soft-error: rgba(214, 48, 49, 0.25);
             --soft-error-border: #852626;
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); padding: 20px; color: var(--text-main); margin: 0; text-transform: uppercase; }
         .container { max-width: 1450px; margin: auto; background: var(--bg-container); padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border-color); position: relative; }
         
-        /* ALERTA DE CAMPO VAZIO - SUAVIZADO */
+        /* ALERTA DE CAMPO VAZIO */
         .input-error {
             border: 1px solid var(--soft-error-border) !important;
             background: var(--soft-error) !important;
@@ -212,25 +212,15 @@ function showToast(msg, color = 'var(--accent-green)') {
 
 function fecharModal() { document.getElementById('modalConfirm').style.display = 'none'; }
 
-// FUNÇÃO DE VALIDAÇÃO EM TEMPO REAL
 function validarCamposTempoReal(abaId) {
     const aba = document.getElementById(abaId);
     if (!aba) return;
-
-    const camposObrigatorios = [
-        '.at_chat', '.at_os', '.at_cto', 
-        '.at_caminho_rede', '.at_contrato', 
-        '.at_nome_cli', '.at_plib_num'
-    ];
-
+    const camposObrigatorios = ['.at_chat', '.at_os', '.at_cto', '.at_caminho_rede', '.at_contrato', '.at_nome_cli', '.at_plib_num'];
     camposObrigatorios.forEach(seletor => {
         const campo = aba.querySelector(seletor);
         if (campo) {
-            if (!campo.value.trim()) {
-                campo.classList.add('input-error');
-            } else {
-                campo.classList.remove('input-error');
-            }
+            if (!campo.value.trim()) { campo.classList.add('input-error'); } 
+            else { campo.classList.remove('input-error'); }
         }
     });
 }
@@ -248,23 +238,19 @@ function adicionarNovaAba() {
     const html = `
     <div id="${id}" class="tab-content">
         <input type="hidden" class="at_id_reg" value="">
-
         <details class="import-box" open>
             <summary>📥 IMPORTAR SCRIPT DE CAMPO</summary>
             <textarea class="at_import_texto" style="height: 120px; text-transform: none;" placeholder="COLE O SCRIPT DO TÉCNICO AQUI..."></textarea>
             <button class="btn-primary" style="background: var(--accent-purple); margin-top:10px;" onclick="processarScriptIndividual('${id}')">PROCESSAR DADOS</button>
         </details>
-
         <div class="grid-main">
             <div>
                 <h3 style="color:var(--header-color)">📋 REGISTRO DE ATENDIMENTO</h3>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;" oninput="validarCamposTempoReal('${id}')">
                     <div class="input-group"><label>ID CHAT</label><input type="text" class="at_chat" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="at_os" oninput="sincronizarResumo('${id}')"></div>
-                    
                     <div class="input-group"><label>CONTRATO CLIENTE</label><input type="text" class="at_contrato" oninput="sincronizarPortaAuto('${id}')"></div>
                     <div class="input-group"><label>NOME COMPLETO CLIENTE</label><input type="text" class="at_nome_cli" oninput="sincronizarPortaAuto('${id}')"></div>
-                    
                     <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value); sincronizarResumo('${id}');"></div>
                     <div class="input-group" style="grid-column:span 2"><label>CAMINHO DE REDE CTO</label><input type="text" class="at_caminho_rede"></div>
                     <div class="input-group" style="grid-column:span 2">
@@ -306,18 +292,15 @@ function adicionarNovaAba() {
                     <button class="btn-icon-small" title="Copiar Mapa de Portas" onclick="copiarSomentePortas('${id}')">📋</button>
                 </h3>
                 <div class="portas-container" id="grid-${id}"></div>
-
                 <div class="resumo-atendimento">
                     <h4>🔍 RESUMO OPERACIONAL</h4>
                     <div class="resumo-grid">
                         <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CONTRATO</span><span class="resumo-valor res-contrato">-</span><span class="copy-icon-small">📋</span></div>
-                        
                         <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">PORTA RETIRADA</span><span class="resumo-valor res-porta-retirada">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span><span class="copy-icon-small">📋</span></div>
-                        
                         <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CLIENTE</span><span class="resumo-valor res-loc-cli">-</span><span class="copy-icon-small">📋</span></div>
@@ -331,7 +314,7 @@ function adicionarNovaAba() {
             <div class="grid-main">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                     <div class="input-group"><label>BKO RESPONSÁVEL</label><input type="text" class="sat_bko" value="CAIO BRANDÃO"></div>
-                    <div class="input-group"><label>DATA</label><input type="date" class="sat_data"></div>
+                    <div class="input-group"><label>DATA</label><input type="text" class="sat_data"></div>
                     <div class="input-group"><label>CIDADE/UF</label><input type="text" class="sat_cidade" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO (ATENDIMENTO)</label><input type="text" class="sat_cliente"></div>
                     <div class="input-group"><label>CTO VALIDADA</label><input type="text" class="sat_ctovald"></div>
@@ -358,21 +341,36 @@ function adicionarNovaAba() {
     
     document.getElementById('at-area').insertAdjacentHTML('beforeend', html);
     atualizarInterfaceAT(id, "16 PORTAS");
-    
-    const campoData = document.getElementById(id).querySelector('.sat_data');
-    campoData.value = new Date().toISOString().split('T')[0];
-
-    // Chama validação inicial (vai marcar tudo de vermelho suave se estiver vazio)
+    document.getElementById(id).querySelector('.sat_data').value = new Date().toLocaleDateString('pt-BR');
     validarCamposTempoReal(id);
     showTab(id, btn);
+}
+
+function gerarScriptSaturada(id) {
+    const aba = document.getElementById(id);
+    const getVal = (cls) => (aba.querySelector('.'+cls).value || '').toUpperCase().trim();
+    
+    let script = `// CTO SATURADA //\n`;
+    script += `BKO: ${getVal('sat_bko')}\n`;
+    script += `DATA: ${getVal('sat_data')}\n`;
+    script += `ID CHAT: ${getVal('at_chat')}\n`;
+    script += `CIDADE: ${getVal('sat_cidade')}\n`;
+    script += `CLIENTE: ${getVal('sat_cliente')}\n`;
+    script += `CTO VALIDADA: ${getVal('sat_ctovald')}\n`;
+    script += `LOC. CLIENTE: ${getVal('sat_loc_cli')}\n`;
+    script += `LOC. CTO: ${getVal('sat_loc_cto_ordem')}\n`;
+    script += `OBS: ${getVal('sat_obs')}`;
+
+    const out = aba.querySelector(`#sat-form-${id} .sat-output`);
+    out.innerText = script;
+    out.style.display = 'block';
+    aba.querySelector(`#sat-form-${id} .btn-copy`).style.display = 'block';
 }
 
 function copiarValorResumo(elemento) {
     const valor = elemento.querySelector('.resumo-valor').innerText;
     if (valor !== "-") {
-        navigator.clipboard.writeText(valor).then(() => {
-            showToast(`COPIADO: ${valor}`);
-        });
+        navigator.clipboard.writeText(valor).then(() => showToast(`COPIADO: ${valor}`));
     }
 }
 
@@ -381,13 +379,10 @@ function sincronizarPortaAuto(abaId) {
     const contrato = aba.querySelector('.at_contrato').value.toUpperCase().trim();
     const nome = aba.querySelector('.at_nome_cli').value.toUpperCase().trim();
     const portaSel = aba.querySelector('.at_plib_id').value;
-
     if (portaSel !== "NENHUMA" && (contrato !== "" || nome !== "")) {
         const numPorta = portaSel.replace("PORTA ", "");
         const inputPorta = aba.querySelector(`.pt${numPorta}`);
-        if (inputPorta) {
-            inputPorta.value = `USOU A PORTA ${numPorta} - ${contrato} - ${nome}`;
-        }
+        if (inputPorta) inputPorta.value = `USOU A PORTA ${numPorta} - ${contrato} - ${nome}`;
     }
     sincronizarResumo(abaId);
 }
@@ -396,7 +391,6 @@ function sincronizarResumo(abaId) {
     const aba = document.getElementById(abaId);
     const get = (cls) => (aba.querySelector('.'+cls).value || '').toUpperCase().trim();
     const idPortaRetirada = get('at_plib_num');
-
     aba.querySelector('.res-chat').innerText = get('at_chat') || '-';
     aba.querySelector('.res-os').innerText = get('at_os') || '-';
     aba.querySelector('.res-contrato').innerText = get('at_contrato') || '-';
@@ -406,7 +400,6 @@ function sincronizarResumo(abaId) {
     aba.querySelector('.res-cidade').innerText = get('sat_cidade') || '-';
     aba.querySelector('.res-loc-cto').innerText = get('sat_loc_cto_ordem') || '-';
     aba.querySelector('.res-loc-cli').innerText = get('sat_loc_cli') || '-';
-
     const modelo = parseInt(aba.querySelector('.at_modelo_cto').value);
     for(let i=1; i<=modelo; i++){
         const inputPorta = aba.querySelector(`.pt${i}`);
@@ -414,18 +407,14 @@ function sincronizarResumo(abaId) {
             const valorPorta = inputPorta.value.toUpperCase().trim();
             if(idPortaRetirada !== "" && valorPorta !== "" && valorPorta === idPortaRetirada) {
                 inputPorta.classList.add('porta-conflito');
-            } else {
-                inputPorta.classList.remove('porta-conflito');
-            }
+            } else { inputPorta.classList.remove('porta-conflito'); }
         }
     }
 }
 
 function abrirLinkExterno(btn) {
     const input = btn.previousElementSibling;
-    if (input && input.value.includes('http')) {
-        window.open(input.value, '_blank', 'width=1000,height=800');
-    }
+    if (input && input.value.includes('http')) window.open(input.value, '_blank', 'width=1000,height=800');
 }
 
 function extrairCoordenadasDeTexto(texto) {
@@ -453,28 +442,20 @@ function monitorarCoordenadas(abaId, valor, campoElemento) {
         if(campoElemento) campoElemento.nextElementSibling.style.display = 'none';
         return;
     }
-    if (campoElemento) {
-        campoElemento.nextElementSibling.style.display = valor.includes('http') ? 'block' : 'none';
-    }
+    if (campoElemento) campoElemento.nextElementSibling.style.display = valor.includes('http') ? 'block' : 'none';
     const coordsLimpas = extrairCoordenadasDeTexto(valor);
     if (coordsLimpas !== valor && coordsLimpas.includes(',')) {
-        if(campoElemento) {
-            campoElemento.value = coordsLimpas;
-            campoElemento.nextElementSibling.style.display = 'none';
-        }
+        if(campoElemento) { campoElemento.value = coordsLimpas; campoElemento.nextElementSibling.style.display = 'none'; }
     }
     timerBusca = setTimeout(() => {
-        if (/[0-9]/.test(coordsLimpas) && coordsLimpas.includes(',')) {
-            buscarCidadePorCoordenadas(abaId, coordsLimpas);
-        }
+        if (/[0-9]/.test(coordsLimpas) && coordsLimpas.includes(',')) buscarCidadePorCoordenadas(abaId, coordsLimpas);
         sincronizarResumo(abaId);
     }, 800);
 }
 
 function limparIdCTO(rawId) {
     if(!rawId) return "";
-    let limpo = rawId.toUpperCase();
-    limpo = limpo.replace(/CTO A VALIDAR:|CTO RESERVADA:|CTO:|LOCALIZAÇÃO DA CTO:|LOCALIZAÇÃO CLIENTE:|LOCALIZAÇÃO:|LOCALIZAÇÃO|LOCALIZA/g, "");
+    let limpo = rawId.toUpperCase().replace(/CTO A VALIDAR:|CTO RESERVADA:|CTO:|LOCALIZAÇÃO DA CTO:|LOCALIZAÇÃO CLIENTE:|LOCALIZAÇÃO:|LOCALIZAÇÃO|LOCALIZA/g, "");
     return limpo.trim().replace(/^CTO\s+/g, "CTO").replace(/\s+/g, " ");
 }
 
@@ -508,10 +489,8 @@ function processarScriptIndividual(abaId) {
     const os = capturar(/Ordem:\s*(\d+)/i);
     const chat = capturar(/ID Chat:\s*(\w+)/i);
     let ctoBruta = capturar(/CTO a validar:\s*(.*?)(?=Localização|$)/is) || capturar(/CTO Reservada:\s*(.*?)(?=Localização|$)/is);
-    let locClienteRaw = capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i);
-    let locCtoRaw = capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i);
-    const locCliente = extrairCoordenadasDeTexto(locClienteRaw);
-    const locCto = extrairCoordenadasDeTexto(locCtoRaw);
+    const locCliente = extrairCoordenadasDeTexto(capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i));
+    const locCto = extrairCoordenadasDeTexto(capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i));
     const ctoLimpada = limparIdCTO(ctoBruta);
     aba.querySelector('.at_chat').value = chat;
     aba.querySelector('.at_os').value = os;
@@ -520,23 +499,17 @@ function processarScriptIndividual(abaId) {
     aba.querySelector('.sat_ctovald').value = ctoLimpada;
     const campoLocCli = aba.querySelector('.sat_loc_cli');
     const campoLocCto = aba.querySelector('.sat_loc_cto_ordem');
-    campoLocCli.value = locCliente; 
-    campoLocCto.value = locCto;
+    campoLocCli.value = locCliente; campoLocCto.value = locCto;
     puxarCaminhoRedeAutomatico(abaId, ctoLimpada);
     monitorarCoordenadas(abaId, locCliente, campoLocCli);
     monitorarCoordenadas(abaId, locCto, campoLocCto);
-    const modeloBruto = capturar(/Portas da CTO:\s*(\d+)/i);
-    const modelo = modeloBruto.includes("8") ? "8 PORTAS" : "16 PORTAS";
+    const modelo = capturar(/Portas da CTO:\s*(\d+)/i).includes("8") ? "8 PORTAS" : "16 PORTAS";
     aba.querySelector('.at_modelo_cto').value = modelo;
     atualizarInterfaceAT(abaId, modelo);
     for(let i=1; i<=parseInt(modelo); i++){
         const rPorta = new RegExp(`IDENTIFICAÇÃO PORTA ${i}:\\s*(.*)`, "i");
         let v = capturar(rPorta).toUpperCase().trim();
-        const padraoZeros = /^[0]+$/; 
-        const tresDigitosPuros = /^\d{3}$/; 
-        if(v === "" || v === "NT" || v.length < 3 || v.includes("{{") || v.includes("SEM ID") || padraoZeros.test(v) || tresDigitosPuros.test(v)) {
-            v = "SEM ID";
-        }
+        if(v === "" || v === "NT" || v.length < 3 || v.includes("{{") || v.includes("SEM ID")) v = "SEM ID";
         const input = aba.querySelector(`.pt${i}`);
         if(input) input.value = v; 
     }
@@ -551,85 +524,45 @@ function gerarScript(id) {
     const get = (c) => aba.querySelector('.'+c).value.toUpperCase().trim();
     const mod = get('at_modelo_cto');
     const obs = (aba.querySelector('.at_obs_select').value === 'MANUAL') ? get('at_obs_manual') : get('at_obs_select');
-    
     let s = `ID CHAT: ${get('at_chat')}\nORDEM DE SERVIÇO: ${get('at_os')}\nID CTO: ${get('at_cto')}\nCAMINHO DE REDE CTO: ${get('at_caminho_rede')}\nMODELO: ${mod}\nPORTA UTILIZADA: ${get('at_plib_id')} \nID PORTA RETIRADA:${get('at_plib_num')}\nCORREÇÃO CAMINHO PORTA UTILIZADA: ${get('at_correcao_caminho')}\nOBS: ${obs}\n\nMAPA:\n`;
-    
     for(let i=1; i<=parseInt(mod); i++){
         let v = aba.querySelector(`.pt${i}`).value.toUpperCase().trim();
         if (v === "" || v === "LIVRE") v = "SEM ID";
         s += `P${i.toString().padStart(2,'0')}: ${v}\n`;
     }
     const out = aba.querySelector('.at-output');
-    out.innerText = s;
-    out.style.display = 'block';
+    out.innerText = s; out.style.display = 'block';
     aba.querySelector('.btn-copy').style.display = 'block';
 }
 
 function salvarAtendimento(id) {
     const aba = document.getElementById(id);
     const btnSave = document.getElementById(`btn-finish-${id}`);
-    const inputIdReg = aba.querySelector('.at_id_reg');
-    const getVal = (cls) => (aba.querySelector('.'+cls).value || '').toUpperCase().trim();
-    
-    // Verifica se ainda existem campos vazios
-    const erro = Array.from(aba.querySelectorAll('.input-error')).length > 0;
-    if (erro) {
+    if (Array.from(aba.querySelectorAll('.input-error')).length > 0) {
         showToast("PREENCHA TODOS OS CAMPOS EM ALERTA!", "var(--accent-red)");
         return;
     }
-
-    const mod = getVal('at_modelo_cto');
-    const obsFinal = (aba.querySelector('.at_obs_select').value === 'MANUAL') ? getVal('at_obs_manual') : getVal('at_obs_select');
-    
+    const getVal = (cls) => (aba.querySelector('.'+cls).value || '').toUpperCase().trim();
+    let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     let portasAtuais = [];
-    const qtd = parseInt(mod);
-    for(let i=1; i<=qtd; i++){
-        let vPorta = aba.querySelector(`.pt${i}`).value.toUpperCase().trim();
-        portasAtuais.push(vPorta || "SEM ID");
-    }
+    const qtd = parseInt(getVal('at_modelo_cto'));
+    for(let i=1; i<=qtd; i++) portasAtuais.push(aba.querySelector(`.pt${i}`).value.toUpperCase().trim() || "SEM ID");
 
-    let dadosParaSalvar = {
-        chat: getVal('at_chat'),
-        os: getVal('at_os'),
-        contrato: getVal('at_contrato'),
-        cliente: getVal('at_nome_cli'),
-        cto: getVal('at_cto'),
-        caminho_rede: getVal('at_caminho_rede'),
-        modelo: mod,
-        porta_utilizada: getVal('at_plib_id'),
-        porta_retirada: getVal('at_plib_num'),
-        correcao: getVal('at_correcao_caminho'),
-        obs: obsFinal,
+    let dados = {
+        id_reg: aba.querySelector('.at_id_reg').value || Date.now(),
+        timestamp: new Date().toLocaleString(),
+        chat: getVal('at_chat'), os: getVal('at_os'), contrato: getVal('at_contrato'), cliente: getVal('at_nome_cli'),
+        cto: getVal('at_cto'), caminho_rede: getVal('at_caminho_rede'), modelo: getVal('at_modelo_cto'),
+        porta_utilizada: getVal('at_plib_id'), porta_retirada: getVal('at_plib_num'), correcao: getVal('at_correcao_caminho'),
+        obs: (aba.querySelector('.at_obs_select').value === 'MANUAL') ? getVal('at_obs_manual') : getVal('at_obs_select'),
         portas: portasAtuais
     };
 
-    let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
-
-    if (inputIdReg.value) {
-        const index = hist.findIndex(x => x.id_reg == inputIdReg.value);
-        if (index !== -1) {
-            dadosParaSalvar.id_reg = parseInt(inputIdReg.value);
-            dadosParaSalvar.timestamp = hist[index].timestamp;
-            dadosParaSalvar.last_update = new Date().toLocaleString();
-            hist[index] = dadosParaSalvar;
-            showToast("REGISTRO ATUALIZADO!");
-        } else {
-            dadosParaSalvar.id_reg = Date.now();
-            dadosParaSalvar.timestamp = new Date().toLocaleString();
-            inputIdReg.value = dadosParaSalvar.id_reg;
-            hist.unshift(dadosParaSalvar);
-            showToast("REGISTRO SALVO!");
-        }
-    } else {
-        dadosParaSalvar.id_reg = Date.now();
-        dadosParaSalvar.timestamp = new Date().toLocaleString();
-        inputIdReg.value = dadosParaSalvar.id_reg;
-        hist.unshift(dadosParaSalvar);
-        showToast("REGISTRO SALVO!");
-    }
+    const idx = hist.findIndex(x => x.id_reg == dados.id_reg);
+    if(idx !== -1) hist[idx] = dados; else hist.unshift(dados);
     
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
-    btnSave.innerHTML = "✅ ATUALIZADO!";
+    btnSave.innerHTML = "✅ SALVO!";
     setTimeout(() => { btnSave.innerHTML = "✅ SALVAR NO HISTÓRICO"; }, 2000);
     carregarHistorico();
 }
@@ -637,88 +570,31 @@ function salvarAtendimento(id) {
 function carregarHistorico() {
     const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const tbody = document.querySelector('#tabelaHist tbody');
-    const container = document.getElementById('metrics-daily');
-    container.innerHTML = '';
-    const contagem = {};
-    for (let i = 0; i < 7; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dataStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        contagem[dataStr] = 0;
-    }
-    hist.forEach(r => {
-        const dataRegistro = r.timestamp.split(',')[0].substring(0, 5);
-        if (contagem.hasOwnProperty(dataRegistro)) contagem[dataRegistro]++;
-    });
-    Object.keys(contagem).forEach(data => {
-        container.innerHTML += `<div class="metric-card"><div class="metric-day">${data}</div><div class="metric-qty">${contagem[data]}</div></div>`;
-    });
     tbody.innerHTML = hist.map(r => `
-        <tr>
-            <td>${r.timestamp}</td>
-            <td>${r.chat}</td>
-            <td>${r.os}</td>
-            <td>${r.cto}</td>
-            <td>${r.correcao}</td>
-            <td>${r.obs}</td>
-            <td>
-                <button class="btn-action" style="background:var(--header-color)" onclick="editarRegistro(${r.id_reg})">✏️</button>
-                <button class="btn-action" style="background:var(--accent-red)" onclick="excluirRegistro(${r.id_reg})">🗑️</button>
-            </td>
-        </tr>
+        <tr><td>${r.timestamp}</td><td>${r.chat}</td><td>${r.os}</td><td>${r.cto}</td><td>${r.correcao}</td><td>${r.obs}</td>
+        <td><button class="btn-action" style="background:var(--header-color)" onclick="editarRegistro(${r.id_reg})">✏️</button></td></tr>
     `).join('');
 }
 
 function editarRegistro(id) {
-    const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
-    const r = hist.find(x => x.id_reg === id);
+    const r = JSON.parse(localStorage.getItem('atend_logs_v10')).find(x => x.id_reg === id);
     if(!r) return;
-    
-    let tabs = document.querySelectorAll('.tab-content:not(#tab-historico)');
-    if (tabs.length === 0) {
-        adicionarNovaAba();
-        tabs = document.querySelectorAll('.tab-content:not(#tab-historico)');
-    }
-    let abaId = tabs[0].id; 
+    const abaId = document.querySelectorAll('.tab-content:not(#tab-historico)')[0].id;
     const aba = document.getElementById(abaId);
-    
     aba.querySelector('.at_id_reg').value = r.id_reg;
     aba.querySelector('.at_chat').value = r.chat;
     aba.querySelector('.at_os').value = r.os;
-    aba.querySelector('.at_contrato').value = r.contrato || '';
-    aba.querySelector('.at_nome_cli').value = r.cliente || '';
     aba.querySelector('.at_cto').value = r.cto;
-    aba.querySelector('.at_caminho_rede').value = r.caminho_rede || '';
     aba.querySelector('.at_modelo_cto').value = r.modelo;
-    aba.querySelector('.at_plib_num').value = r.porta_retirada || '';
-    aba.querySelector('.at_correcao_caminho').value = r.correcao || 'NAO';
-    
     atualizarInterfaceAT(abaId, r.modelo);
-    aba.querySelector('.at_plib_id').value = r.porta_utilizada || 'NENHUMA';
-
-    if (r.portas) {
-        r.portas.forEach((p, i) => { 
-            const input = aba.querySelector(`.pt${i+1}`); 
-            if(input) input.value = (p === "SEM ID" ? "" : p); 
-        });
-    }
-
-    sincronizarResumo(abaId);
-    // Valida no momento que carrega para edição
+    if(r.portas) r.portas.forEach((p, i) => { const inp = aba.querySelector(`.pt${i+1}`); if(inp) inp.value = (p==="SEM ID"?"":p); });
     validarCamposTempoReal(abaId);
     showTab(abaId, document.getElementById(`btn-${abaId}`));
-    showToast("REGISTRO CARREGADO PARA EDIÇÃO");
 }
 
 function toggleSaturada(id) { document.getElementById(`sat-form-${id}`).classList.toggle('active'); }
 function copiarScript(btn) { navigator.clipboard.writeText(btn.previousElementSibling.innerText).then(() => showToast("COPIADO!")); }
-
-function showTab(id, btn) {
-    document.querySelectorAll('.tab-content, .tab-btn').forEach(x => x.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    btn.classList.add('active');
-}
-
+function showTab(id, btn) { document.querySelectorAll('.tab-content, .tab-btn').forEach(x => x.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); }
 function fecharAba(e, id) { e.stopPropagation(); document.getElementById(id).remove(); document.getElementById(`btn-${id}`).remove(); document.querySelectorAll('.tab-btn')[0].click(); }
 
 function atualizarInterfaceAT(id, modelo) {
@@ -735,7 +611,6 @@ function atualizarInterfaceAT(id, modelo) {
 }
 
 function toggleObsManual(id, val) { document.querySelector(`#${id} .at_obs_manual`).style.display = (val === 'MANUAL' ? 'block' : 'none'); }
-
 function filtrarHistorico() {
     const v = document.getElementById('inputBusca').value.toUpperCase();
     document.querySelectorAll('#tabelaHist tbody tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(v) ? '' : 'none');
@@ -745,6 +620,7 @@ function limparForm(id) {
     const aba = document.getElementById(id);
     aba.querySelector('.at_id_reg').value = ''; 
     aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko') && i.type !== 'hidden') i.value = ''; });
+    aba.querySelector('.sat_data').value = new Date().toLocaleDateString('pt-BR');
     aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
     document.getElementById(`sat-form-${id}`).classList.remove('active');
     sincronizarResumo(id);
@@ -754,15 +630,12 @@ function limparForm(id) {
 function copiarSomentePortas(abaId) {
     const aba = document.getElementById(abaId);
     const modelo = parseInt(aba.querySelector('.at_modelo_cto').value);
-    let textoPortas = "";
+    let txt = "";
     for (let i = 1; i <= modelo; i++) {
-        let v = aba.querySelector(`.pt${i}`).value.toUpperCase().trim();
-        if (v === "" || v === "LIVRE") v = "SEM ID";
-        textoPortas += `P${i.toString().padStart(2, '0')}: ${v}\n`;
+        let v = aba.querySelector(`.pt${i}`).value.toUpperCase().trim() || "SEM ID";
+        txt += `P${i.toString().padStart(2, '0')}: ${v}\n`;
     }
-    if (textoPortas) {
-        navigator.clipboard.writeText(textoPortas.trim()).then(() => showToast("MAPA DE PORTAS COPIADO!"));
-    }
+    navigator.clipboard.writeText(txt.trim()).then(() => showToast("MAPA DE PORTAS COPIADO!"));
 }
 </script>
 </body>
