@@ -100,6 +100,12 @@
         .copy-icon-small { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.3; }
         .resumo-item:hover .copy-icon-small { opacity: 1; color: var(--header-color); }
 
+        .btn-icon-small { 
+            background: none; border: none; color: var(--accent-purple); cursor: pointer; font-size: 16px; 
+            padding: 0 5px; opacity: 0.7; transition: 0.2s; 
+        }
+        .btn-icon-small:hover { opacity: 1; transform: scale(1.2); }
+
         .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .btn-primary { background: var(--header-color); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; flex: 1; text-transform: uppercase; min-width: 150px; transition: 0.3s; }
         .btn-sat-toggle { background: var(--accent-orange); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; padding: 12px; flex: 1; min-width: 150px; }
@@ -221,7 +227,7 @@ function adicionarNovaAba() {
                         </select>
                     </div>
                     <div class="input-group"><label>PORTA UTILIZADA</label><select class="at_plib_id" onchange="sincronizarPortaAuto('${id}')"></select></div>
-                    <div class="input-group"><label>ID PORTA RETIRADA</label><input type="text" class="at_plib_num"></div>
+                    <div class="input-group"><label>ID PORTA RETIRADA</label><input type="text" class="at_plib_num" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group" style="grid-column:span 2">
                         <label>CORREÇÃO DE CAMINHO DA PORTA LIBERADA ?</label>
                         <select class="at_correcao_caminho"><option value="NAO">NÃO</option><option value="SIM">SIM</option></select>
@@ -247,7 +253,10 @@ function adicionarNovaAba() {
                 <button class="btn-copy" onclick="copiarScript(this)">📋 COPIAR SCRIPT</button>
             </div>
             <div>
-                <h3 style="opacity:0.7">🔌 MAPEAR PORTAS</h3>
+                <h3 style="opacity:0.7; display: flex; align-items: center; gap: 8px;">
+                    🔌 MAPEAR PORTAS
+                    <button class="btn-icon-small" title="Copiar Mapa de Portas" onclick="copiarSomentePortas('${id}')">📋</button>
+                </h3>
                 <div class="portas-container" id="grid-${id}"></div>
 
                 <div class="resumo-atendimento">
@@ -260,6 +269,8 @@ function adicionarNovaAba() {
                         <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span><span class="copy-icon-small">📋</span></div>
 
                         <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span><span class="copy-icon-small">📋</span></div>
+                        <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">ID PORTA RETIRADA</span><span class="resumo-valor res-porta-retirada">-</span><span class="copy-icon-small">📋</span></div>
+                        
                         <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CLIENTE</span><span class="resumo-valor res-loc-cli">-</span><span class="copy-icon-small">📋</span></div>
@@ -341,6 +352,7 @@ function sincronizarResumo(abaId) {
     aba.querySelector('.res-contrato').innerText = get('at_contrato');
     aba.querySelector('.res-nome').innerText = get('at_nome_cli');
     aba.querySelector('.res-cto').innerText = get('at_cto');
+    aba.querySelector('.res-porta-retirada').innerText = get('at_plib_num');
     aba.querySelector('.res-cidade').innerText = get('sat_cidade');
     aba.querySelector('.res-loc-cto').innerText = get('sat_loc_cto_ordem');
     aba.querySelector('.res-loc-cli').innerText = get('sat_loc_cli');
@@ -488,7 +500,6 @@ function gerarScript(id) {
     const mod = get('at_modelo_cto');
     const obs = (aba.querySelector('.at_obs_select').value === 'MANUAL') ? get('at_obs_manual') : get('at_obs_select');
     
-    // Removido CONTRATO e CLIENTE do script gerado conforme pedido
     let s = `ID CHAT: ${get('at_chat')}\nORDEM DE SERVIÇO: ${get('at_os')}\nID CTO: ${get('at_cto')}\nCAMINHO DE REDE CTO: ${get('at_caminho_rede')}\nMODELO: ${mod}\nPORTA UTILIZADA: ${get('at_plib_id')} \nID PORTA RETIRADA:${get('at_plib_num')}\nCORREÇÃO CAMINHO PORTA UTILIZADA: ${get('at_correcao_caminho')}\nOBS: ${obs}\n\nMAPA:\n`;
     
     let portasArr = [];
@@ -728,6 +739,22 @@ function limparForm(id) {
     aba.querySelectorAll('.btn-open-link').forEach(btn => btn.style.display = 'none');
     document.getElementById(`sat-form-${id}`).classList.remove('active');
     sincronizarResumo(id);
+}
+
+function copiarSomentePortas(abaId) {
+    const aba = document.getElementById(abaId);
+    const modelo = parseInt(aba.querySelector('.at_modelo_cto').value);
+    let textoPortas = "";
+    for (let i = 1; i <= modelo; i++) {
+        let v = aba.querySelector(`.pt${i}`).value.toUpperCase().trim();
+        if (v === "" || v === "LIVRE") v = "SEM ID";
+        textoPortas += `P${i.toString().padStart(2, '0')}: ${v}\n`;
+    }
+    if (textoPortas) {
+        navigator.clipboard.writeText(textoPortas.trim()).then(() => {
+            showToast("MAPA DE PORTAS COPIADO!");
+        });
+    }
 }
 </script>
 </body>
