@@ -53,28 +53,45 @@
         .portas-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; background: var(--card-before); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
         .porta-item { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: bold; }
         .porta-item input { height: 28px; padding: 4px 8px; }
+        
+        .porta-conflito { 
+            border: 2px solid var(--accent-orange) !important; 
+            box-shadow: 0 0 10px rgba(230, 126, 34, 0.5);
+            background: #2c1a0a !important;
+            animation: pulse-orange 1.5s infinite;
+        }
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 5px rgba(230, 126, 34, 0.4); }
+            50% { box-shadow: 0 0 15px rgba(230, 126, 34, 0.7); }
+            100% { box-shadow: 0 0 5px rgba(230, 126, 34, 0.4); }
+        }
 
+        /* RESUMO OPERACIONAL COMPACTO */
         .resumo-atendimento {
             margin-top: 12px;
-            padding: 12px;
+            padding: 8px;
             background: #1c2128;
-            border: 2px solid var(--header-color);
-            border-radius: 10px;
+            border: 1px solid var(--header-color);
+            border-radius: 8px;
         }
         .resumo-atendimento h4 {
             color: var(--header-color);
-            margin: 0 0 10px 0;
-            font-size: 12px;
+            margin: 0 0 8px 0;
+            font-size: 11px;
             letter-spacing: 1px;
             text-align: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 6px;
+            padding-bottom: 4px;
         }
-        .resumo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .resumo-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 6px; 
+        }
         .resumo-item {
             background: #0d1117;
-            padding: 8px 10px;
-            border-radius: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
             border: 1px solid #30363d;
             display: flex;
             flex-direction: column;
@@ -82,12 +99,13 @@
             position: relative;
             cursor: pointer;
             transition: 0.2s;
+            min-height: 38px;
         }
         .resumo-item:hover { background: #161b22; border-color: var(--header-color); }
-        .resumo-label { color: #8b949e; display: block; margin-bottom: 2px; font-size: 10px; font-weight: 600; pointer-events: none; }
+        .resumo-label { color: #8b949e; display: block; margin-bottom: 1px; font-size: 9px; font-weight: 600; pointer-events: none; }
         .resumo-valor {
             color: #ffffff;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 700;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -96,9 +114,9 @@
             pointer-events: none;
         }
         .resumo-item.orange .resumo-valor { color: var(--accent-orange); }
-        .resumo-item.full-width { grid-column: span 2; }
-        .copy-icon-small { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.3; }
-        .resumo-item:hover .copy-icon-small { opacity: 1; color: var(--header-color); }
+        .resumo-item.full-width { grid-column: span 3; }
+        .copy-icon-small { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 10px; opacity: 0.2; }
+        .resumo-item:hover .copy-icon-small { opacity: 0.8; color: var(--header-color); }
 
         .btn-icon-small { 
             background: none; border: none; color: var(--accent-purple); cursor: pointer; font-size: 16px; 
@@ -264,14 +282,13 @@ function adicionarNovaAba() {
                     <div class="resumo-grid">
                         <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span><span class="copy-icon-small">📋</span></div>
-                        
                         <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CONTRATO</span><span class="resumo-valor res-contrato">-</span><span class="copy-icon-small">📋</span></div>
-                        <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span><span class="copy-icon-small">📋</span></div>
-
-                        <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span><span class="copy-icon-small">📋</span></div>
-                        <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">ID PORTA RETIRADA</span><span class="resumo-valor res-porta-retirada">-</span><span class="copy-icon-small">📋</span></div>
                         
+                        <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span><span class="copy-icon-small">📋</span></div>
+                        <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">PORTA RETIRADA</span><span class="resumo-valor res-porta-retirada">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span><span class="copy-icon-small">📋</span></div>
+                        
+                        <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span><span class="copy-icon-small">📋</span></div>
                         <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CLIENTE</span><span class="resumo-valor res-loc-cli">-</span><span class="copy-icon-small">📋</span></div>
                     </div>
@@ -345,17 +362,32 @@ function sincronizarPortaAuto(abaId) {
 
 function sincronizarResumo(abaId) {
     const aba = document.getElementById(abaId);
-    const get = (cls) => aba.querySelector('.'+cls).value || '-';
+    const get = (cls) => (aba.querySelector('.'+cls).value || '').toUpperCase().trim();
 
-    aba.querySelector('.res-chat').innerText = get('at_chat');
-    aba.querySelector('.res-os').innerText = get('at_os');
-    aba.querySelector('.res-contrato').innerText = get('at_contrato');
-    aba.querySelector('.res-nome').innerText = get('at_nome_cli');
-    aba.querySelector('.res-cto').innerText = get('at_cto');
-    aba.querySelector('.res-porta-retirada').innerText = get('at_plib_num');
-    aba.querySelector('.res-cidade').innerText = get('sat_cidade');
-    aba.querySelector('.res-loc-cto').innerText = get('sat_loc_cto_ordem');
-    aba.querySelector('.res-loc-cli').innerText = get('sat_loc_cli');
+    const idPortaRetirada = get('at_plib_num');
+
+    aba.querySelector('.res-chat').innerText = get('at_chat') || '-';
+    aba.querySelector('.res-os').innerText = get('at_os') || '-';
+    aba.querySelector('.res-contrato').innerText = get('at_contrato') || '-';
+    aba.querySelector('.res-nome').innerText = get('at_nome_cli') || '-';
+    aba.querySelector('.res-cto').innerText = get('at_cto') || '-';
+    aba.querySelector('.res-porta-retirada').innerText = idPortaRetirada || '-';
+    aba.querySelector('.res-cidade').innerText = get('sat_cidade') || '-';
+    aba.querySelector('.res-loc-cto').innerText = get('sat_loc_cto_ordem') || '-';
+    aba.querySelector('.res-loc-cli').innerText = get('sat_loc_cli') || '-';
+
+    const modelo = parseInt(aba.querySelector('.at_modelo_cto').value);
+    for(let i=1; i<=modelo; i++){
+        const inputPorta = aba.querySelector(`.pt${i}`);
+        if(inputPorta) {
+            const valorPorta = inputPorta.value.toUpperCase().trim();
+            if(idPortaRetirada !== "" && valorPorta !== "" && valorPorta === idPortaRetirada) {
+                inputPorta.classList.add('porta-conflito');
+            } else {
+                inputPorta.classList.remove('porta-conflito');
+            }
+        }
+    }
 }
 
 function abrirLinkExterno(btn) {
