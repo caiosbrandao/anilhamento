@@ -149,16 +149,6 @@
         .metric-card { background: #1c2128; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; border-bottom: 3px solid var(--accent-purple); }
         .metric-day { font-size: 10px; color: #8b949e; margin-bottom: 5px; font-weight: bold; }
         .metric-qty { font-size: 20px; font-weight: 800; color: var(--header-color); }
-
-        /* Novo estilo para o endereço */
-        .at_endereco_display {
-            font-size: 10px;
-            color: var(--accent-orange);
-            font-weight: 700;
-            margin-bottom: 15px;
-            min-height: 12px;
-            letter-spacing: 0.5px;
-        }
     </style>
 </head>
 <body>
@@ -167,11 +157,11 @@
 
 <div id="modalConfirm" class="modal-overlay">
     <div class="modal-card">
-        <h2>⚠️ CONFIRMAR EXCLUSÃO</h2>
-        <p>VOCÊ REALMENTE DESEJA ELIMINAR ESTE REGISTRO DO HISTÓRICO? ESSA OPERAÇÃO É IRREVERSÍVEL.</p>
+        <h2 id="modalTitle">⚠️ ATENÇÃO</h2>
+        <p id="modalMessage">VOCÊ TEM CERTEZA DISSO?</p>
         <div class="modal-btns">
             <button class="btn-modal btn-modal-cancel" onclick="fecharModal()">CANCELAR</button>
-            <button id="btnConfirmarExcluir" class="btn-modal btn-modal-confirm">EXCLUIR AGORA</button>
+            <button id="btnModalConfirmAction" class="btn-modal btn-modal-confirm">CONFIRMAR</button>
         </div>
     </div>
 </div>
@@ -220,19 +210,28 @@ function showToast(msg, color = 'var(--accent-green)') {
 
 function fecharModal() { document.getElementById('modalConfirm').style.display = 'none'; }
 
+function abrirModalPersonalizado(titulo, msg, acaoConfirmar, corBotao = 'var(--accent-red)') {
+    document.getElementById('modalTitle').innerText = titulo;
+    document.getElementById('modalMessage').innerText = msg;
+    const btn = document.getElementById('btnModalConfirmAction');
+    btn.style.background = corBotao;
+    btn.onclick = () => { acaoConfirmar(); fecharModal(); };
+    document.getElementById('modalConfirm').style.display = 'flex';
+}
+
 function abrirModalExcluir(id) {
     idParaRemover = id;
-    document.getElementById('modalConfirm').style.display = 'flex';
-    document.getElementById('btnConfirmarExcluir').onclick = function() {
-        confirmarExclusao();
-    };
+    abrirModalPersonalizado(
+        "⚠️ CONFIRMAR EXCLUSÃO", 
+        "VOCÊ REALMENTE DESEJA ELIMINAR ESTE REGISTRO DO HISTÓRICO? ESSA OPERAÇÃO É IRREVERSÍVEL.",
+        confirmarExclusao
+    );
 }
 
 function confirmarExclusao() {
     let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     hist = hist.filter(x => x.id_reg != idParaRemover);
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
-    fecharModal();
     carregarHistorico();
     showToast("REGISTRO EXCLUÍDO!", "var(--accent-red)");
 }
@@ -270,12 +269,11 @@ function adicionarNovaAba() {
         </details>
         <div class="grid-main">
             <div>
-                <h3 style="color:var(--header-color)">📋 REGISTRO DE ATENDIMENTO</h3>
-                <div class="at_endereco_display">COORDENADAS NÃO INFORMADAS</div>
+                <h3 style="color:var(--header-color)">📋 REGISTRO DE ATENDIMENTO <span id="status-interfocus" style="font-size: 12px; margin-left: 10px;"></span></h3>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;" oninput="validarCamposTempoReal('${id}')">
                     <div class="input-group"><label>ID CHAT</label><input type="text" class="at_chat" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="at_os" oninput="sincronizarResumo('${id}')"></div>
-                    <div class="input-group"><label>CONTRATO CLIENTE</label><input type="text" class="at_contrato" oninput="sincronizarPortaAuto('${id}')"></div>
+                    <div class="input-group"><label>CONTRATO CLIENTE</label><input type="text" class="at_contrato" id="at_contrato_field" oninput="sincronizarPortaAuto('${id}')"></div>
                     <div class="input-group"><label>NOME COMPLETO CLIENTE</label><input type="text" class="at_nome_cli" oninput="sincronizarPortaAuto('${id}')"></div>
                     <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value); sincronizarResumo('${id}');"></div>
                     <div class="input-group" style="grid-column:span 2"><label>CAMINHO DE REDE CTO</label><input type="text" class="at_caminho_rede"></div>
@@ -518,7 +516,7 @@ async function buscarCidadePorCoordenadas(abaId, coordenadas) {
     const coordsLimpas = coordenadas.replace(/\s/g, '').split(',');
     if (coordsLimpas.length !== 2) return;
     try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordsLimpas[0]}&lon=${coordsLimpas[1]}&zoom=18&addressdetails=1`, {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordsLimpas[0]}&lon=${coordsLimpas[1]}&zoom=10`, {
             headers: { 'User-Agent': 'RegistroAtendimento/2.0' }
         });
         const data = await response.json();
@@ -526,20 +524,6 @@ async function buscarCidadePorCoordenadas(abaId, coordenadas) {
             const cidade = data.address.city || data.address.town || data.address.village || data.address.municipality || "";
             const estado = data.address.state ? data.address.state : "";
             const uf = data.address['ISO3166-2-lvl4'] ? data.address['ISO3166-2-lvl4'].split('-')[1] : estado;
-            
-            // Montar endereço completo
-            const rua = data.address.road || "";
-            const numero = data.address.house_number || "S/N";
-            const bairro = data.address.suburb || data.address.neighbourhood || "";
-            
-            let enderecoCompleto = "";
-            if(rua) enderecoCompleto += `${rua}, ${numero}`;
-            if(bairro) enderecoCompleto += ` - ${bairro}`;
-            if(cidade) enderecoCompleto += ` - ${cidade}/${uf}`;
-
-            const displayEnd = document.getElementById(abaId).querySelector('.at_endereco_display');
-            if(displayEnd) displayEnd.innerText = enderecoCompleto.toUpperCase();
-
             if (cidade) {
                 document.getElementById(abaId).querySelector('.sat_cidade').value = `${cidade.toUpperCase()} / ${uf.toUpperCase()}`;
                 sincronizarResumo(abaId);
@@ -644,7 +628,6 @@ function salvarAtendimento(id) {
         correcao: getVal('at_correcao_caminho'),
         obs: (aba.querySelector('.at_obs_select').value === 'MANUAL') ? getVal('at_obs_manual') : getVal('at_obs_select'),
         portas: portasAtuais,
-        // Novos campos para salvar o relatório de saturação
         sat_bko: getVal('sat_bko'),
         sat_data: getVal('sat_data'),
         sat_cidade: getVal('sat_cidade'),
@@ -661,6 +644,7 @@ function salvarAtendimento(id) {
     }
     
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
+    aba.querySelector('.at_id_reg').value = dados.id_reg; // Garante que o ID foi setado na aba
     btnSave.innerHTML = "✅ SALVO!";
     setTimeout(() => { btnSave.innerHTML = "✅ SALVAR NO HISTÓRICO"; }, 2000);
     carregarHistorico();
@@ -714,7 +698,6 @@ function editarRegistro(id) {
     aba.querySelector('.at_caminho_rede').value = r.caminho_rede || '';
     aba.querySelector('.at_modelo_cto').value = r.modelo || '16 PORTAS';
     
-    // Repopular campos de saturação
     if(aba.querySelector('.sat_bko')) aba.querySelector('.sat_bko').value = r.sat_bko || 'CAIO BRANDÃO';
     if(aba.querySelector('.sat_data')) aba.querySelector('.sat_data').value = r.sat_data || '';
     if(aba.querySelector('.sat_cidade')) aba.querySelector('.sat_cidade').value = r.sat_cidade || '';
@@ -746,7 +729,87 @@ function editarRegistro(id) {
 function toggleSaturada(id) { document.getElementById(`sat-form-${id}`).classList.toggle('active'); }
 function copiarScript(btn) { navigator.clipboard.writeText(btn.previousElementSibling.innerText).then(() => showToast("COPIADO!")); }
 function showTab(id, btn) { document.querySelectorAll('.tab-content, .tab-btn').forEach(x => x.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); }
-function fecharAba(e, id) { e.stopPropagation(); document.getElementById(id).remove(); document.getElementById(`btn-${id}`).remove(); document.querySelectorAll('.tab-btn')[0].click(); }
+
+// --- LÓGICA DE SEGURANÇA CORRIGIDA ---
+function verificarMudancasNaoSalvas(abaId) {
+    const aba = document.getElementById(abaId);
+    const getVal = (cls) => aba.querySelector('.'+cls).value.toUpperCase().trim();
+    
+    // Se estiver tudo vazio, não precisa avisar
+    if (!getVal('at_chat') && !getVal('at_os') && !getVal('at_cto')) return false;
+
+    const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
+    const regId = aba.querySelector('.at_id_reg').value;
+    
+    // Se não tem ID reg mas tem dados, é um novo registro não salvo
+    if (!regId) return true;
+
+    const r = hist.find(x => x.id_reg == regId);
+    if (!r) return true; // Caso o ID exista mas não esteja no banco (raro)
+
+    let portasAtuais = [];
+    const qtd = parseInt(getVal('at_modelo_cto'));
+    for(let i=1; i<=qtd; i++) {
+        const ptInput = aba.querySelector(`.pt${i}`);
+        portasAtuais.push(ptInput ? ptInput.value.toUpperCase().trim() : "SEM ID");
+    }
+
+    // Verifica se os dados atuais no form são diferentes do que está no banco
+    const houveAlteracao = 
+        r.chat !== getVal('at_chat') ||
+        r.os !== getVal('at_os') ||
+        r.cto !== getVal('at_cto') ||
+        r.contrato !== getVal('at_contrato') ||
+        r.porta_retirada !== getVal('at_plib_num') ||
+        JSON.stringify(r.portas) !== JSON.stringify(portasAtuais);
+
+    return houveAlteracao;
+}
+
+function fecharAba(e, id) { 
+    e.stopPropagation(); 
+    if (verificarMudancasNaoSalvas(id)) {
+        abrirModalPersonalizado(
+            "⚠️ MUDANÇAS NÃO SALVAS", 
+            "ESTE ATENDIMENTO POSSUI ALTERAÇÕES QUE NÃO FORAM SALVAS NO HISTÓRICO. DESEJA REALMENTE FECHAR?",
+            () => {
+                document.getElementById(id).remove(); 
+                document.getElementById(`btn-${id}`).remove(); 
+                document.querySelectorAll('.tab-btn')[0].click(); 
+            }
+        );
+    } else {
+        document.getElementById(id).remove(); 
+        document.getElementById(`btn-${id}`).remove(); 
+        document.querySelectorAll('.tab-btn')[0].click(); 
+    }
+}
+
+function limparForm(id) {
+    if (verificarMudancasNaoSalvas(id)) {
+        abrirModalPersonalizado(
+            "⚠️ LIMPAR FORMULÁRIO", 
+            "EXISTEM DADOS NÃO SALVOS NESTE FORMULÁRIO. DESEJA LIMPAR TUDO MESMO ASSIM?",
+            () => executarLimpeza(id),
+            "var(--accent-orange)"
+        );
+    } else {
+        executarLimpeza(id);
+    }
+}
+
+function executarLimpeza(id) {
+    const aba = document.getElementById(id);
+    aba.querySelector('.at_id_reg').value = ''; 
+    aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko') && i.type !== 'hidden') i.value = ''; });
+    aba.querySelector('.sat_data').value = new Date().toLocaleDateString('pt-BR');
+    aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
+    document.getElementById(`sat-form-${id}`).classList.remove('active');
+    sincronizarResumo(id);
+    validarCamposTempoReal(id);
+    showToast("FORMULÁRIO LIMPO!");
+}
+// --- FIM DA LÓGICA DE SEGURANÇA ---
 
 function atualizarInterfaceAT(id, modelo) {
     const qtd = parseInt(modelo);
@@ -771,21 +834,6 @@ function filtrarHistorico() {
     document.querySelectorAll('#tabelaHist tbody tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(v) ? '' : 'none');
 }
 
-function limparForm(id) {
-    const aba = document.getElementById(id);
-    aba.querySelector('.at_id_reg').value = ''; 
-    aba.querySelectorAll('input, textarea').forEach(i => { if(!i.classList.contains('sat_bko') && i.type !== 'hidden') i.value = ''; });
-    aba.querySelector('.sat_data').value = new Date().toLocaleDateString('pt-BR');
-    aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
-    document.getElementById(`sat-form-${id}`).classList.remove('active');
-    
-    const displayEnd = aba.querySelector('.at_endereco_display');
-    if(displayEnd) displayEnd.innerText = "COORDENADAS NÃO INFORMADAS";
-
-    sincronizarResumo(id);
-    validarCamposTempoReal(id);
-}
-
 function copiarSomentePortas(abaId) {
     const aba = document.getElementById(abaId);
     const modelo = parseInt(aba.querySelector('.at_modelo_cto').value);
@@ -796,6 +844,26 @@ function copiarSomentePortas(abaId) {
     }
     navigator.clipboard.writeText(txt.trim()).then(() => showToast("MAPA DE PORTAS COPIADO!"));
 }
+
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'at_contrato_field') {
+        const contrato = e.target.value;
+        if (contrato.length >= 4) {
+            window.parent.postMessage({ tipo: 'CONSULTAR_CONTRATO', contrato: contrato }, '*');
+        }
+    }
+});
+
+window.addEventListener('message', (e) => {
+    if (e.data.tipo === 'STATUS_RETORNO') {
+        const statusLabel = document.getElementById('status-interfocus');
+        if (statusLabel) {
+            statusLabel.innerText = `[${e.data.status}]`;
+            statusLabel.style.color = e.data.status.includes('ATIVO') ? '#00b894' : '#d63031';
+            showToast(`STATUS: ${e.data.status}`, statusLabel.style.color);
+        }
+    }
+});
 </script>
 </body>
 </html>
