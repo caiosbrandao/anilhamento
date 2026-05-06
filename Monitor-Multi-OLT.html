@@ -8,34 +8,53 @@
             --bg-body: #f0f2f5; --bg-container: #ffffff; --text-main: #2d3436;
             --border-color: #dcdde1; --input-bg: #ffffff; --header-color: #0984e3;
             --warn-color: #f39c12; --log-bg: #f5f6fa; --log-card: #ffffff;
+            --accent-glow: rgba(9, 132, 227, 0.2);
         }
         [data-theme="dark"] {
             --bg-body: #1a1c23; --bg-container: #242731; --text-main: #e2e8f0;
             --border-color: #313640; --input-bg: #1e2128; --header-color: #3498db;
             --log-bg: #111318; --log-card: #2a2f3a;
+            --accent-glow: rgba(52, 152, 219, 0.15);
         }
-        body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-body); padding: 20px; color: var(--text-main); transition: background 0.3s; }
+        body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-body); padding: 20px; color: var(--text-main); transition: background 0.3s; position: relative; }
         .container { max-width: 1400px; margin: auto; background: var(--bg-container); padding: 25px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        
+        .motivation-wrapper {
+            margin-bottom: 25px;
+            padding: 15px 20px;
+            background: linear-gradient(90deg, rgba(9, 132, 227, 0.05) 0%, rgba(108, 92, 231, 0.05) 100%);
+            border-left: 4px solid var(--header-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+        }
+        .motivation-icon { font-size: 20px; filter: drop-shadow(0 0 5px var(--accent-glow)); }
+        .motivation-bar { font-style: italic; color: var(--text-main); font-size: 13px; font-weight: 500; line-height: 1.4; letter-spacing: 0.2px; }
+
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; padding-bottom: 15px; }
         
-        /* Log Design Moderno e Fino */
         .log-section { margin-bottom: 25px; background: var(--log-bg); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; }
         .log-header { background: var(--header-color); color: white; padding: 6px 15px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; display: flex; justify-content: space-between; align-items: center; }
-        .log-container { height: 160px; overflow-y: auto; padding: 8px; font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 11px; }
+        .log-container { height: 200px; overflow-y: auto; padding: 8px; font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 11px; display: flex; flex-direction: column; gap: 4px; }
         
+        /* Ajuste do Log Entry para Agrupamento */
         .log-entry { 
-            background: var(--log-card); margin-bottom: 3px; padding: 4px 12px; border-radius: 4px; 
-            display: grid; grid-template-columns: 70px 150px 110px 1fr; align-items: center;
-            border-left: 3px solid #4a5568; transition: transform 0.1s;
+            background: var(--log-card); padding: 6px 12px; border-radius: 6px; 
+            display: grid; grid-template-columns: 150px 110px 1fr 120px; align-items: center;
+            border-left: 4px solid #4a5568; transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .log-entry.entry-fail { border-left-color: #ff4757; background: rgba(255, 71, 87, 0.08); }
-        .log-entry.entry-recover { border-left-color: #2ed573; background: rgba(46, 213, 115, 0.08); }
-        .log-entry.entry-warn { border-left-color: #ffa502; background: rgba(255, 165, 2, 0.08); }
+        .log-entry.entry-fail { border-left-color: #ff4757; background: rgba(255, 71, 87, 0.05); }
+        .log-entry.entry-recover { border-left-color: #2ed573; background: rgba(46, 213, 115, 0.05); }
+        .log-entry.entry-warn { border-left-color: #ffa502; background: rgba(255, 165, 2, 0.05); }
 
-        .log-time { color: #718096; font-size: 10px; }
+        .log-time { color: #718096; font-size: 9px; margin-left: 10px; }
         .log-fail { color: #ff4757; font-weight: 800; }
         .log-recover { color: #2ed573; font-weight: 800; }
         .log-warn { color: #ffa502; font-weight: 800; }
+        .log-history { font-size: 9px; opacity: 0.7; grid-column: 1 / -1; margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color); }
 
         .theme-control { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 11px; }
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
@@ -82,12 +101,51 @@
 
         .badge-vendor { font-size: 8px; padding: 1px 5px; border-radius: 4px; color: white; margin-bottom: 3px; display: inline-block; font-weight: 800; }
         .b-huawei { background: #d63031; } .b-zte { background: #0984e3; } .b-nokia { background: #6c5ce7; } .b-datacom { background: #e67e22; }
-        .serial-text { font-size: 12px; color: var(--header-color); }
+        
+        .serial-text { 
+            font-size: 12px; 
+            color: var(--header-color); 
+            cursor: pointer; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            background: rgba(0, 0, 0, 0.04); 
+            transition: all 0.2s; 
+            display: inline-block; 
+            font-family: 'JetBrains Mono', 'Consolas', monospace; 
+        }
+        .serial-text:hover { background: var(--header-color); color: white !important; }
+        .serial-text:active { transform: scale(0.95); }
+
+        #scrollTopBtn {
+            display: none; position: fixed; bottom: 30px; right: 30px; z-index: 99;
+            border: none; outline: none; background: var(--header-color); color: white;
+            cursor: pointer; padding: 12px 18px; border-radius: 50%; font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s;
+        }
+        #scrollTopBtn:hover { background: #0061af; transform: scale(1.1); }
+
+        .toast-copy {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: #2ed573; color: white; padding: 10px 20px; border-radius: 30px;
+            font-size: 11px; font-weight: 700; box-shadow: 0 5px 15px rgba(46, 213, 115, 0.4);
+            z-index: 9999; animation: slideUpFade 2s forwards; display: flex; align-items: center; gap: 8px;
+        }
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translate(-50%, 20px); }
+            15% { opacity: 1; transform: translate(-50%, 0); }
+            85% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
     </style>
 </head>
 <body data-theme="dark">
 
 <div class="container">
+    <div class="motivation-wrapper">
+        <span class="motivation-icon">💡</span>
+        <div id="motivationBar" class="motivation-bar"></div>
+    </div>
+
     <div class="header">
         <div>
             <h2 style="margin:0; font-size: 1.3em; letter-spacing: -0.5px;">Monitor Multi-OLT <small style="font-size: 11px; font-weight: 400; opacity: 0.6;">v2.5 Pro</small></h2>
@@ -105,8 +163,8 @@
 
     <div class="log-section">
         <div class="log-header">
-            <span>LOG DE EVENTOS EM TEMPO REAL</span>
-            <span id="logCounter">0 REGISTROS</span>
+            <span>LOG DE EVENTOS AGRUPADO (STATUS ATUAL)</span>
+            <span id="logCounter">0 EQUIPAMENTOS COM ALTERAÇÃO</span>
         </div>
         <div class="log-container" id="eventLog">
             <div style="opacity: 0.3; text-align: center; padding-top: 60px;">Aguardando alterações de rede...</div>
@@ -134,11 +192,88 @@
     </div>
 </div>
 
+<button onclick="scrollToTop()" id="scrollTopBtn" title="Voltar ao topo">▲</button>
+
 <script>
-// Mantendo a lógica de negócio original intacta
+const motivationalPhrases = [
+    "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
+    "A persistência é o caminho do êxito.",
+    "Não espere por oportunidades, crie-as.",
+    "O melhor modo de prever o futuro é criá-lo.",
+    "Grandes batalhas só são dadas a grandes guerreiros.",
+    "Acredite em si próprio e todo o resto virá naturalmente.",
+    "Sua única limitação é aquela que você impõe em sua própria mente.",
+    "O fracasso é apenas a oportunidade de começar de novo, desta vez de forma mais inteligente.",
+    "A disciplina é a ponte entre metas e realizações.",
+    "O que você faz hoje pode melhorar todos os seus amanhãs.",
+    "Tudo o que você sempre quis está do outro lado do medo.",
+    "Não pare até se orgulhar.",
+    "Foque no objetivo, não nos obstáculos.",
+    "Pequenos passos todos os dias levam a grandes resultados.",
+    "Seja a sua melhor versão hoje.",
+    "A coragem não é a ausência de medo, mas o triunfo sobre ele.",
+    "O segredo para progredir é começar.",
+    "Trabalhe em silêncio e deixe o seu sucesso ser o seu barulho.",
+    "Mudar é difícil no início, confuso no meio e lindo no final.",
+    "Você é mais forte do que imagina.",
+    "A mentalidade é tudo.",
+    "Transforme seus erros em lições.",
+    "A única maneira de fazer um excelente trabalho é amar o que você faz.",
+    "Dificuldades preparam pessoas comuns para destinos extraordinários.",
+    "Sua determinação determina o seu destino.",
+    "Não olhe para o relógio; faça o que ele faz. Continue andando.",
+    "A motivação te faz começar, o hábito te faz continuar.",
+    "O sucesso não é o final, o fracasso não é fatal: o que conta é a coragem de continuar.",
+    "Você nunca é velho demais para definir outro objetivo ou sonhar um novo sonho.",
+    "A vida começa onde termina a sua zona de conforto."
+];
+
+function setDailyMotivation() {
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+    const phrase = motivationalPhrases[dayOfYear % motivationalPhrases.length];
+    document.getElementById('motivationBar').innerText = phrase;
+}
+
+window.onscroll = function() { scrollFunction() };
+
+function scrollFunction() {
+    const btn = document.getElementById("scrollTopBtn");
+    if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+        btn.style.display = "block";
+    } else {
+        btn.style.display = "none";
+    }
+}
+
+function scrollToTop() {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function copyToClipboard(text) {
+    const cleanText = text.replace(/:/g, '').trim();
+    navigator.clipboard.writeText(cleanText).then(() => {
+        const existingToast = document.querySelector('.toast-copy');
+        if (existingToast) existingToast.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast-copy';
+        toast.innerHTML = `<span>📋 Copiado: <b>${cleanText}</b></span>`;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => { toast.remove(); }, 2000);
+    });
+}
+
+function cleanMacSerial(text) {
+    if (!text) return "";
+    return text.replace(/:/g, '').trim();
+}
+
+setDailyMotivation();
+
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const statusTracker = new Map(); 
-let eventCount = 0;
+const logTracker = new Map(); // Armazena a referência visual do log para cada serial
 
 function playAlarm() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -163,9 +298,9 @@ function limparTudo() {
     document.getElementById('tableContainer').innerHTML = '<div class="waiting-msg">Insira os dados acima para gerar o relatório comparativo.</div>';
     document.getElementById('eventLog').innerHTML = '<div style="opacity: 0.3; text-align: center; padding-top: 60px;">Aguardando alterações de rede...</div>';
     document.getElementById('summary').innerText = 'Pronto para análise';
-    document.getElementById('logCounter').innerText = '0 REGISTROS';
-    eventCount = 0;
+    document.getElementById('logCounter').innerText = '0 EQUIPAMENTOS COM ALTERAÇÃO';
     statusTracker.clear(); 
+    logTracker.clear();
 }
 
 function addLogEntry(type, serial, port, message) {
@@ -182,18 +317,44 @@ function addLogEntry(type, serial, port, message) {
     if (type === "RECOVER") { typeClass = "log-recover"; entryClass = "entry-recover"; }
     if (type === "WARN") { typeClass = "log-warn"; entryClass = "entry-warn"; }
 
-    const entry = document.createElement('div');
-    entry.className = `log-entry ${entryClass}`;
-    entry.innerHTML = `
-        <span class="log-time">[${timeStr}]</span> 
-        <span><b>${serial}</b></span> 
-        <span style="opacity:0.6; font-size: 9px;">P: ${port}</span> 
-        <span class="${typeClass}">${message}</span>
-    `;
+    const cleanSerial = cleanMacSerial(serial);
     
-    logContainer.prepend(entry);
-    eventCount++;
-    document.getElementById('logCounter').innerText = `${eventCount} REGISTROS`;
+    // Se já existe um card para esse serial, removemos para re-inserir no topo
+    if (logTracker.has(cleanSerial)) {
+        const oldEntry = logTracker.get(cleanSerial);
+        const history = oldEntry.querySelector('.log-history').innerHTML;
+        const newHistory = `[${timeStr}] ${message}<br>` + history;
+        
+        oldEntry.remove();
+        
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${entryClass}`;
+        entry.id = `log-${cleanSerial}`;
+        entry.innerHTML = `
+            <span><b class="serial-text" onclick="copyToClipboard('${cleanSerial}')">${cleanSerial}</b></span> 
+            <span style="opacity:0.6; font-size: 9px;">P: ${port}</span> 
+            <span class="${typeClass}">${message}</span>
+            <span class="log-time">Atualizado: ${timeStr}</span>
+            <div class="log-history">${newHistory}</div>
+        `;
+        logContainer.prepend(entry);
+        logTracker.set(cleanSerial, entry);
+    } else {
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${entryClass}`;
+        entry.id = `log-${cleanSerial}`;
+        entry.innerHTML = `
+            <span><b class="serial-text" onclick="copyToClipboard('${cleanSerial}')">${cleanSerial}</b></span> 
+            <span style="opacity:0.6; font-size: 9px;">P: ${port}</span> 
+            <span class="${typeClass}">${message}</span>
+            <span class="log-time">${timeStr}</span>
+            <div class="log-history">[${timeStr}] Início do rastreio: ${message}</div>
+        `;
+        logContainer.prepend(entry);
+        logTracker.set(cleanSerial, entry);
+    }
+
+    document.getElementById('logCounter').innerText = `${logTracker.size} EQUIPAMENTOS COM ALTERAÇÃO`;
 }
 
 function translateStatus(raw) {
@@ -221,7 +382,7 @@ function parseLog(text) {
     const datacomRegex = /^(\d+\/\d+\/\d+)\s+(\d+)\s+([A-Z0-9]{12})\s+(Up|Down)/i;
     const zteStateRegex = /^(?:gpon-onu_)?(\d+\/\d+\/\d+[:\/]\d+)\s+(?:enable|disable)\s+(?:enable|disable)\s+(working|los|dyinggasp|offline|down|up)/i;
     const ztePowerRegex = /^(?:gpon-onu_)?(\d+\/\d+\/\d+[:\/]\d+)\s+([-\d.]+)\(dbm\)/i;
-    const zteSerialRegex = /^(?:gpon-onu_)?(\d+\/\d+\/\d+[:\/]\d+)\s+.*SN:(ZTE[A-Z0-9]+)/i;
+    const zteSerialRegex = /^(?:gpon-onu_)?(\d+\/\d+\/\d+[:\/]\d+)\s+.*SN:(ZTE[A-Z0-9:]+)/i;
 
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
@@ -235,7 +396,8 @@ function parseLog(text) {
                 }
             }
             if (sn && sn.length >= 12 && runState) {
-                dataMap.set(sn.trim(), { id: pont + ":" + id, status: translateStatus(runState), raw: runState, type: 'HUAWEI', signal: "0.00" });
+                const cleanedSn = cleanMacSerial(sn);
+                dataMap.set(cleanedSn, { id: pont + ":" + id, status: translateStatus(runState), raw: runState, type: 'HUAWEI', signal: "0.00" });
             }
         }
         else if (m = line.match(zteStateRegex)) {
@@ -251,23 +413,30 @@ function parseLog(text) {
         else if (m = line.match(zteSerialRegex)) {
             const id = m[1].replace(':', '/');
             const obj = zteAccumulator.get(id) || { id: id, type: 'ZTE', status: 'OFF', raw: 'OFF', signal: '0.00', serial: id };
-            obj.serial = m[2]; zteAccumulator.set(id, obj);
+            obj.serial = cleanMacSerial(m[2]); zteAccumulator.set(id, obj);
         }
         else if (m = line.match(datacomRegex)) {
-            dataMap.set(m[3].trim(), { id: m[1] + " ID:" + m[2], status: translateStatus(m[4]), raw: m[4], type: 'DATACOM', signal: "0.00" });
+            const cleanedSn = cleanMacSerial(m[3]);
+            dataMap.set(cleanedSn, { id: m[1] + " ID:" + m[2], status: translateStatus(m[4]), raw: m[4], type: 'DATACOM', signal: "0.00" });
         }
         else if (m = line.match(nokiaHoriz)) {
-            dataMap.set(m[3].trim(), { id: m[2], status: translateStatus(m[4]), raw: m[4], type: 'NOKIA', signal: formatSignal(m[5]) });
+            const cleanedSn = cleanMacSerial(m[3]);
+            dataMap.set(cleanedSn, { id: m[2], status: translateStatus(m[4]), raw: m[4], type: 'NOKIA', signal: formatSignal(m[5]) });
         }
         else if (m = line.match(huaweiHoriz)) {
-            dataMap.set(m[3].trim(), { id: m[1]+":"+m[2], status: translateStatus(m[4]), raw: m[4], type: 'HUAWEI', signal: formatSignal(m[5]) });
+            const cleanedSn = cleanMacSerial(m[3]);
+            dataMap.set(cleanedSn, { id: m[1]+":"+m[2], status: translateStatus(m[4]), raw: m[4], type: 'HUAWEI', signal: formatSignal(m[5]) });
         }
         else if (line.match(/^[A-Z0-9]{4}:[A-F0-9]{8}$/i)) {
             let id = lines[i-1] || "N/A"; let status = lines[i+2] || "down"; let signal = lines[i+3] || "-";
-            dataMap.set(line, { id, status: translateStatus(status), raw: status, type: 'NOKIA', signal: formatSignal(signal) });
+            const cleanedSn = cleanMacSerial(line);
+            dataMap.set(cleanedSn, { id, status: translateStatus(status), raw: status, type: 'NOKIA', signal: formatSignal(signal) });
         }
     }
-    zteAccumulator.forEach((val) => { dataMap.set(val.serial, val); });
+    zteAccumulator.forEach((val) => { 
+        const cleanedKey = cleanMacSerial(val.serial);
+        dataMap.set(cleanedKey, val); 
+    });
     return dataMap;
 }
 
@@ -291,23 +460,28 @@ function compareData() {
         const s1Norm = d1 ? d1.status : 'OFF'; const s2Norm = d2 ? d2.status : 'OFF';
         const sig1 = d1?.signal || "0.00"; const sig2 = d2?.signal || "0.00";
         
-        const lastStatus = statusTracker.get(key) || s1Norm;
+        let lastStatus = statusTracker.get(key) || s1Norm;
         let priority = 0, msg = '<span style="opacity:0.4;">Estável</span>', rowClass = '', sigClass = '';
 
-        if (lastStatus === 'UP' && s2Norm === 'DOWN') { 
+        const cleanKey = cleanMacSerial(key);
+
+        if ((lastStatus === 'UP' && s2Norm === 'DOWN') || (lastStatus === 'ALARM_DOWN' && s2Norm === 'DOWN')) { 
             rowClass = 'row-caiu'; 
             msg = '<span class="txt-caiu">❌ QUEDA</span>'; 
             priority = 3; falls++; 
-            addLogEntry("FAIL", key, d2?.id || d1?.id, "ALARME LOS - LINK DOWN");
-            statusTracker.set(key, 'DOWN'); 
+            
+            if (lastStatus !== 'ALARM_DOWN') {
+                addLogEntry("FAIL", cleanKey, d2?.id || d1?.id, "ALARME LOS - LINK DOWN");
+            }
+            statusTracker.set(cleanKey, 'ALARM_DOWN');
         }
-        else if (lastStatus === 'DOWN' && s2Norm === 'UP') { 
+        else if (lastStatus === 'ALARM_DOWN' && s2Norm === 'UP') { 
             msg = '<span style="color:#2ed573; font-weight:bold;">✅ RECUPERADO</span>'; 
             priority = 2; 
-            addLogEntry("RECOVER", key, d2?.id || d1?.id, "REESTABELECIDO - ONLINE");
-            statusTracker.set(key, 'UP'); 
+            addLogEntry("RECOVER", cleanKey, d2?.id || d1?.id, "REESTABELECIDO - ONLINE");
+            statusTracker.set(cleanKey, 'UP'); 
         } else {
-            statusTracker.set(key, s2Norm);
+            statusTracker.set(cleanKey, s2Norm);
         }
 
         if (sig1 !== "0.00" && sig2 !== "0.00") {
@@ -316,11 +490,11 @@ function compareData() {
                 sigClass = 'signal-warn'; 
                 if (priority < 2) msg = '<span style="color:#ffa502; font-weight:bold;">⚠️ OSCILAÇÃO</span>'; 
                 priority = Math.max(priority, 1); signalAlerts++; 
-                addLogEntry("WARN", key, d2?.id || d1?.id, `SINAL: ${sig1} ➜ ${sig2} dBm`);
+                if (statusTracker.get(cleanKey) !== 'ALARM_DOWN') addLogEntry("WARN", cleanKey, d2?.id || d1?.id, `SINAL: ${sig1} ➜ ${sig2} dBm`);
             }
         }
 
-        results.push({ id: d2?.id || d1?.id, key, type: d2?.type || d1?.type, s1Raw: d1?.raw || 'OFF', s2Raw: d2?.raw || 'OFF', s1Norm, s2Norm, sig1, sig2, sigClass, rowClass, msg, priority });
+        results.push({ id: d2?.id || d1?.id, key: cleanKey, type: d2?.type || d1?.type, s1Raw: d1?.raw || 'OFF', s2Raw: d2?.raw || 'OFF', s1Norm, s2Norm, sig1, sig2, sigClass, rowClass, msg, priority });
     });
 
     if (falls > 0 || signalAlerts > 0) playAlarm();
@@ -330,7 +504,7 @@ function compareData() {
         const tr = document.createElement('tr'); if(r.rowClass) tr.className = r.rowClass;
         let colorClass1 = r.s1Norm === 'UP' ? 'st-up' : (r.s1Norm === 'OFF' ? 'st-off' : 'st-down');
         let colorClass2 = r.s2Norm === 'UP' ? 'st-up' : (r.s2Norm === 'OFF' ? 'st-off' : 'st-down');
-        tr.innerHTML = `<td style="font-size:10px; opacity:0.7;">${r.id}</td><td><span class="badge-vendor b-${r.type.toLowerCase()}">${r.type}</span><br><b class="serial-text">${r.key}</b></td><td align="center"><div class="status-pill ${colorClass1}">${r.s1Raw}<div class="signal-badge">${r.sig1}</div></div></td><td align="center"><div class="status-pill ${colorClass2}">${r.s2Raw}<div class="signal-badge">${r.sig2}</div></div></td><td>${r.msg}</td>`;
+        tr.innerHTML = `<td style="font-size:10px; opacity:0.7;">${r.id}</td><td><span class="badge-vendor b-${r.type.toLowerCase()}">${r.type}</span><br><b class="serial-text" onclick="copyToClipboard('${r.key}')" title="Clique para copiar">${r.key}</b></td><td align="center"><div class="status-pill ${colorClass1}">${r.s1Raw}<div class="signal-badge">${r.sig1}</div></div></td><td align="center"><div class="status-pill ${colorClass2}">${r.s2Raw}<div class="signal-badge">${r.sig2}</div></div></td><td>${r.msg}</td>`;
         tbody.appendChild(tr);
     });
     document.getElementById('summary').innerHTML = `${falls} QUEDAS | ${signalAlerts} OSCILAÇÕES | ${allKeys.size} TOTAL`;
