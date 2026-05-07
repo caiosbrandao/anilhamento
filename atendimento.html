@@ -260,12 +260,11 @@ function validarCamposTempoReal(abaId) {
     });
 }
 
-// CORREÇÃO DEFINITIVA: Se houver qualquer texto no campo, ele vai para o script.
 function validarIdentificacaoPorta(valor) {
     if (!valor) return "SEM ID";
     let v = valor.toString().trim().toUpperCase();
     if (v === "" || v === "0" || /^0+$/.test(v)) return "SEM ID";
-    return v; // Retorna o que estiver escrito (incluindo nome/contrato)
+    return v; 
 }
 
 function inicializarMapa(abaId) {
@@ -600,37 +599,67 @@ function processarScriptIndividual(abaId) {
     const aba = document.getElementById(abaId);
     const texto = aba.querySelector('.at_import_texto').value;
     if(!texto) return;
-    const capturar = (regex) => { const match = texto.match(regex); return match ? match[1].trim() : ""; };
-    const os = capturar(/Ordem:\s*(\d+)/i);
+
+    // Função interna para limpar formatação de WhatsApp (* e _)
+    const limparZap = (str) => {
+        if(!str) return "";
+        return str.replace(/[\*_]/g, "").trim();
+    };
+
+    const capturar = (regex) => { 
+        const match = texto.match(regex); 
+        return match ? limparZap(match[1]) : ""; 
+    };
+
+    const os = capturar(/Ordem de serviço:\s*(.*)/i);
     const chat = capturar(/ID Chat:\s*(\w+)/i);
-    let ctoBruta = capturar(/CTO a validar:\s*(.*?)(?=Localização|$)/is) || capturar(/CTO Reservada:\s*(.*?)(?=Localização|$)/is);
-    const locCliente = extrairCoordenadasDeTexto(capturar(/Localização Cliente:\s*(.*?)(?=\n|$)/i));
-    const locCto = extrairCoordenadasDeTexto(capturar(/Localização da CTO:\s*(.*?)(?=\n|$)/i) || capturar(/Localização:\s*(.*?)(?=\n|$)/i));
-    const ctoLimpada = limparIdCTO(ctoBruta);
+    const nomeCli = capturar(/Nome do cliente:\s*(.*)/i);
+    const idCto = capturar(/Primeira CTO Validada:\s*(.*)/i);
+    const locCto = extrairCoordenadasDeTexto(capturar(/Localização CTO:\s*(.*)/i));
+    const locCliente = extrairCoordenadasDeTexto(capturar(/Coordenadas do Cliente:\s*(.*)/i));
+    
+    const servicoTexto = capturar(/Tipo de Serviço:\s*(.*)/i);
+    const contratoMatch = servicoTexto.match(/\((\d+)\)/);
+    const contrato = contratoMatch ? contratoMatch[1] : "";
+
+    // CORREÇÃO: Captura exata da Quantidade de portas e ajuste do modelo
+    const qtdPortasRaw = capturar(/Quantidade de portas:\s*(\d+)/i);
+    const modelo = (qtdPortasRaw === "8") ? "8 PORTAS" : "16 PORTAS";
+
     aba.querySelector('.at_chat').value = chat;
     aba.querySelector('.at_os').value = os;
-    aba.querySelector('.at_cto').value = ctoLimpada;
+    aba.querySelector('.at_nome_cli').value = nomeCli;
+    aba.querySelector('.at_contrato').value = contrato;
+    aba.querySelector('.at_cto').value = limparIdCTO(idCto);
+    
     aba.querySelector('.sat_cliente').value = os;
-    aba.querySelector('.sat_ctovald').value = ctoLimpada;
+    aba.querySelector('.sat_ctovald').value = limparIdCTO(idCto);
+    
     const campoLocCli = aba.querySelector('.sat_loc_cli');
     const campoLocCto = aba.querySelector('.sat_loc_cto_ordem');
-    campoLocCli.value = locCliente; campoLocCto.value = locCto;
-    puxarCaminhoRedeAutomatico(abaId, ctoLimpada);
-    if(locCliente) monitorarCoordenadas(abaId, locCliente, campoLocCli);
-    else if(locCto) monitorarCoordenadas(abaId, locCto, campoLocCto);
-    const modelo = capturar(/Portas da CTO:\s*(\d+)/i).includes("8") ? "8 PORTAS" : "16 PORTAS";
+    campoLocCli.value = locCliente; 
+    campoLocCto.value = locCto;
+
+    if(locCliente && locCliente.includes(',')) monitorarCoordenadas(abaId, locCliente, campoLocCli);
+    if(locCto && locCto.includes(',')) monitorarCoordenadas(abaId, locCto, campoLocCto);
+
+    // Atualiza o select e a interface das portas
     aba.querySelector('.at_modelo_cto').value = modelo;
     atualizarInterfaceAT(abaId, modelo);
-    for(let i=1; i<=parseInt(modelo); i++){
-        const rPorta = new RegExp(`IDENTIFICAÇÃO PORTA ${i}:\\s*(.*)`, "i");
+
+    const qtdNum = parseInt(modelo);
+    for(let i=1; i<=qtdNum; i++){
+        const rPorta = new RegExp(`Porta ${i}:\\s*(.*)`, "i");
         let v = capturar(rPorta);
         const input = aba.querySelector(`.pt${i}`);
-        if(input) input.value = (v.toUpperCase().trim().length >= 4 ? v.toUpperCase().trim() : ""); 
+        if(input) input.value = v; 
     }
+
+    puxarCaminhoRedeAutomatico(abaId, idCto);
     aba.querySelector('details').open = false;
     sincronizarResumo(abaId);
     validarCamposTempoReal(abaId);
-    showToast("DADOS IMPORTADOS!");
+    showToast("DADOS IMPORTADOS COM SUCESSO!");
 }
 
 function gerarScript(id) {
