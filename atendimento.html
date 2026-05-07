@@ -263,7 +263,7 @@ function validarCamposTempoReal(abaId) {
 function validarIdentificacaoPorta(valor) {
     if (!valor) return "SEM ID";
     let v = valor.toString().trim().toUpperCase();
-    if (v === "" || v === "0" || /^0+$/.test(v)) return "SEM ID";
+    if (v === "" || v === "0" || /^0+$/.test(v) || v === "SEM IDENTIFICAÇÃO" || v === "SEM" || v === ".") return "SEM ID";
     return v; 
 }
 
@@ -597,24 +597,25 @@ function limparIdCTO(rawId) {
 
 function processarScriptIndividual(abaId) {
     const aba = document.getElementById(abaId);
-    const texto = aba.querySelector('.at_import_texto').value;
-    if(!texto) return;
+    const textoRaw = aba.querySelector('.at_import_texto').value;
+    if(!textoRaw) return;
 
-    // Função interna para limpar formatação de WhatsApp (* e _)
-    const limparZap = (str) => {
-        if(!str) return "";
-        return str.replace(/[\*_]/g, "").trim();
-    };
+    // Limpeza de caracteres especiais do WhatsApp e normalização de quebras de linha
+    const texto = textoRaw.replace(/[\*_]/g, "").replace(/\r\n/g, "\n");
 
     const capturar = (regex) => { 
         const match = texto.match(regex); 
-        return match ? limparZap(match[1]) : ""; 
+        return match ? match[1].trim() : ""; 
     };
 
     const os = capturar(/Ordem de serviço:\s*(.*)/i);
     const chat = capturar(/ID Chat:\s*(\w+)/i);
     const nomeCli = capturar(/Nome do cliente:\s*(.*)/i);
-    const idCto = capturar(/Primeira CTO Validada:\s*(.*)/i);
+    
+    // Captura flexível de CTO (pega a primeira ou a reservada caso a primeira esteja vazia)
+    let idCto = capturar(/Primeira CTO Validada:\s*(.*)/i);
+    if (!idCto || idCto === ".") idCto = capturar(/CTO Reservada:\s*(.*)/i);
+
     const locCto = extrairCoordenadasDeTexto(capturar(/Localização CTO:\s*(.*)/i));
     const locCliente = extrairCoordenadasDeTexto(capturar(/Coordenadas do Cliente:\s*(.*)/i));
     
@@ -622,10 +623,10 @@ function processarScriptIndividual(abaId) {
     const contratoMatch = servicoTexto.match(/\((\d+)\)/);
     const contrato = contratoMatch ? contratoMatch[1] : "";
 
-    // CORREÇÃO: Captura exata da Quantidade de portas e ajuste do modelo
-    const qtdPortasRaw = capturar(/Quantidade de portas:\s*(\d+)/i);
-    const modelo = (qtdPortasRaw === "8") ? "8 PORTAS" : "16 PORTAS";
+    const qtdPortasTexto = capturar(/Quantidade de portas:\s*(\d+)/i);
+    const modeloSelecionado = (qtdPortasTexto === "8") ? "8 PORTAS" : "16 PORTAS";
 
+    // Povoamento dos campos
     aba.querySelector('.at_chat').value = chat;
     aba.querySelector('.at_os').value = os;
     aba.querySelector('.at_nome_cli').value = nomeCli;
@@ -643,23 +644,28 @@ function processarScriptIndividual(abaId) {
     if(locCliente && locCliente.includes(',')) monitorarCoordenadas(abaId, locCliente, campoLocCli);
     if(locCto && locCto.includes(',')) monitorarCoordenadas(abaId, locCto, campoLocCto);
 
-    // Atualiza o select e a interface das portas
-    aba.querySelector('.at_modelo_cto').value = modelo;
-    atualizarInterfaceAT(abaId, modelo);
+    // Alteração de Modelo e Grid
+    const selectModelo = aba.querySelector('.at_modelo_cto');
+    selectModelo.value = modeloSelecionado;
+    atualizarInterfaceAT(abaId, modeloSelecionado);
 
-    const qtdNum = parseInt(modelo);
+    // Captura de portas com regex específico para identificar o número isolado
+    const qtdNum = parseInt(modeloSelecionado);
     for(let i=1; i<=qtdNum; i++){
-        const rPorta = new RegExp(`Porta ${i}:\\s*(.*)`, "i");
+        const rPorta = new RegExp("Porta " + i + ":\\s*(.*)", "i");
         let v = capturar(rPorta);
         const input = aba.querySelector(`.pt${i}`);
-        if(input) input.value = v; 
+        if(input) {
+            // Se o conteúdo for apenas um ponto ou termos de "vazio", deixa limpo
+            input.value = validarIdentificacaoPorta(v) === "SEM ID" ? "" : v;
+        }
     }
 
     puxarCaminhoRedeAutomatico(abaId, idCto);
     aba.querySelector('details').open = false;
     sincronizarResumo(abaId);
     validarCamposTempoReal(abaId);
-    showToast("DADOS IMPORTADOS COM SUCESSO!");
+    showToast(`DADOS IMPORTADOS (CTO ${modeloSelecionado})`);
 }
 
 function gerarScript(id) {
@@ -745,8 +751,11 @@ function editarRegistro(id) {
     aba.querySelector('.at_nome_cli').value = r.cliente;
     aba.querySelector('.at_cto').value = r.cto;
     aba.querySelector('.at_caminho_rede').value = r.caminho_rede;
-    aba.querySelector('.at_modelo_cto').value = r.modelo;
+    
+    const selectModelo = aba.querySelector('.at_modelo_cto');
+    selectModelo.value = r.modelo;
     atualizarInterfaceAT(abaId, r.modelo);
+
     if(r.portas) r.portas.forEach((p, i) => { 
         const inp = aba.querySelector(`.pt${i+1}`); 
         if(inp) inp.value = (p === "SEM ID" ? "" : p); 
