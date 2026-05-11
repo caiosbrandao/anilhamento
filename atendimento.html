@@ -531,7 +531,7 @@ function extrairCoordenadasDeTexto(texto) {
     if (!texto) return "";
     const regexCoords = /(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/;
     const match = texto.match(regexCoords);
-    return match ? `${match[1]},${match[2]}` : texto.trim();
+    return match ? `${match[1]},${match[2]}` : ""; 
 }
 
 function puxarCaminhoRedeAutomatico(abaId, idCto) {
@@ -550,15 +550,42 @@ function monitorarCoordenadas(abaId, valor, campoElemento) {
     if (campoElemento) campoElemento.nextElementSibling.style.display = valor.includes('http') ? 'block' : 'none';
     
     const coordsLimpas = extrairCoordenadasDeTexto(valor);
-    if (coordsLimpas !== valor && coordsLimpas.includes(',')) { if(campoElemento) campoElemento.value = coordsLimpas; }
+    
+    if (coordsLimpas !== valor && coordsLimpas !== "") { 
+        if(campoElemento) campoElemento.value = coordsLimpas; 
+    } else if (coordsLimpas === "" && !valor.includes('http')) {
+        if(campoElemento) campoElemento.value = "";
+    }
     
     clearTimeout(timerBuscaCidade[abaId]);
     timerBuscaCidade[abaId] = setTimeout(() => {
-        if (/[0-9]/.test(coordsLimpas) && coordsLimpas.includes(',')) {
-            buscarCidadePorCoordenadas(abaId, coordsLimpas);
+        const valAtual = campoElemento ? campoElemento.value : coordsLimpas;
+        if (/[0-9]/.test(valAtual) && valAtual.includes(',')) {
+            buscarCidadePorCoordenadas(abaId, valAtual);
         }
         sincronizarResumo(abaId);
     }, 1000);
+}
+
+// NOVA FUNÇÃO: Busca coordenadas através do endereço escrito
+async function buscarCoordenadasPorEndereco(abaId, endereco) {
+    if (!endereco || endereco.length < 10) return;
+    // Limpeza básica para melhorar a busca (remove CEP e conteúdos entre parênteses)
+    const enderecoLimpo = endereco.replace(/\(\d+\)/g, '').replace(/\d{5}-?\d{3}/g, '').trim();
+    
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(enderecoLimpo)}&limit=1`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+            const lat = data[0].lat;
+            const lon = data[0].lon;
+            const aba = document.getElementById(abaId);
+            const campoLocCli = aba.querySelector('.sat_loc_cli');
+            campoLocCli.value = `${lat},${lon}`;
+            showToast("COORDENADAS OBTIDAS VIA ENDEREÇO!");
+            monitorarCoordenadas(abaId, `${lat},${lon}`, campoLocCli);
+        }
+    } catch (e) { console.error("Erro ao buscar coordenadas:", e); }
 }
 
 async function buscarCidadePorCoordenadas(abaId, coordenadas) {
@@ -600,7 +627,6 @@ function processarScriptIndividual(abaId) {
     const textoRaw = aba.querySelector('.at_import_texto').value;
     if(!textoRaw) return;
 
-    // Limpeza de caracteres especiais do WhatsApp e normalização de quebras de linha
     const texto = textoRaw.replace(/[\*_]/g, "").replace(/\r\n/g, "\n");
 
     const capturar = (regex) => { 
@@ -611,13 +637,16 @@ function processarScriptIndividual(abaId) {
     const os = capturar(/Ordem de serviço:\s*(.*)/i);
     const chat = capturar(/ID Chat:\s*(\w+)/i);
     const nomeCli = capturar(/Nome do cliente:\s*(.*)/i);
+    const endereco = capturar(/Endereço:\s*(.*)/i);
     
-    // Captura flexível de CTO (pega a primeira ou a reservada caso a primeira esteja vazia)
     let idCto = capturar(/Primeira CTO Validada:\s*(.*)/i);
     if (!idCto || idCto === ".") idCto = capturar(/CTO Reservada:\s*(.*)/i);
 
-    const locCto = extrairCoordenadasDeTexto(capturar(/Localização CTO:\s*(.*)/i));
-    const locCliente = extrairCoordenadasDeTexto(capturar(/Coordenadas do Cliente:\s*(.*)/i));
+    const rawLocCto = capturar(/Localização CTO:\s*(.*)/i);
+    const rawLocCliente = capturar(/Coordenadas do Cliente:\s*(.*)/i);
+    
+    const locCto = extrairCoordenadasDeTexto(rawLocCto);
+    const locCliente = extrairCoordenadasDeTexto(rawLocCliente);
     
     const servicoTexto = capturar(/Tipo de Serviço:\s*(.*)/i);
     const contratoMatch = servicoTexto.match(/\((\d+)\)/);
@@ -626,7 +655,6 @@ function processarScriptIndividual(abaId) {
     const qtdPortasTexto = capturar(/Quantidade de portas:\s*(\d+)/i);
     const modeloSelecionado = (qtdPortasTexto === "8") ? "8 PORTAS" : "16 PORTAS";
 
-    // Povoamento dos campos
     aba.querySelector('.at_chat').value = chat;
     aba.querySelector('.at_os').value = os;
     aba.querySelector('.at_nome_cli').value = nomeCli;
@@ -638,25 +666,29 @@ function processarScriptIndividual(abaId) {
     
     const campoLocCli = aba.querySelector('.sat_loc_cli');
     const campoLocCto = aba.querySelector('.sat_loc_cto_ordem');
-    campoLocCli.value = locCliente; 
+    
     campoLocCto.value = locCto;
+    if(locCto) monitorarCoordenadas(abaId, locCto, campoLocCto);
 
-    if(locCliente && locCliente.includes(',')) monitorarCoordenadas(abaId, locCliente, campoLocCli);
-    if(locCto && locCto.includes(',')) monitorarCoordenadas(abaId, locCto, campoLocCto);
+    // LÓGICA DE COORDENADAS DO CLIENTE
+    if (locCliente) {
+        campoLocCli.value = locCliente;
+        monitorarCoordenadas(abaId, locCliente, campoLocCli);
+    } else if (endereco) {
+        // Se não tem coordenada mas tem endereço, tenta buscar
+        buscarCoordenadasPorEndereco(abaId, endereco);
+    }
 
-    // Alteração de Modelo e Grid
     const selectModelo = aba.querySelector('.at_modelo_cto');
     selectModelo.value = modeloSelecionado;
     atualizarInterfaceAT(abaId, modeloSelecionado);
 
-    // Captura de portas com regex específico para identificar o número isolado
     const qtdNum = parseInt(modeloSelecionado);
     for(let i=1; i<=qtdNum; i++){
         const rPorta = new RegExp("Porta " + i + ":\\s*(.*)", "i");
         let v = capturar(rPorta);
         const input = aba.querySelector(`.pt${i}`);
         if(input) {
-            // Se o conteúdo for apenas um ponto ou termos de "vazio", deixa limpo
             input.value = validarIdentificacaoPorta(v) === "SEM ID" ? "" : v;
         }
     }
