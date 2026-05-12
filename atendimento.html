@@ -529,6 +529,7 @@ function abrirLinkExterno(btn) {
 
 function extrairCoordenadasDeTexto(texto) {
     if (!texto) return "";
+    // Ajuste para ignorar caracteres extras no início (como o sublinhado/hífen no novo script)
     const regexCoords = /(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/;
     const match = texto.match(regexCoords);
     return match ? `${match[1]},${match[2]}` : ""; 
@@ -634,25 +635,38 @@ function processarScriptIndividual(abaId) {
         return match ? match[1].trim() : ""; 
     };
 
-    const os = capturar(/Ordem de serviço:\s*(.*)/i);
-    const chat = capturar(/ID Chat:\s*(\w+)/i);
+    // Suporte aos dois tipos de script para OS e Chat
+    let os = capturar(/Ordem de serviço:\s*(.*)/i);
+    if(!os) os = capturar(/Ordem:\s*(.*)/i);
+
+    let chat = capturar(/ID Chat:\s*(\w+)/i);
+    
     const nomeCli = capturar(/Nome do cliente:\s*(.*)/i);
     const endereco = capturar(/Endereço:\s*(.*)/i);
     
+    // Suporte para ID de CTO
     let idCto = capturar(/Primeira CTO Validada:\s*(.*)/i);
     if (!idCto || idCto === ".") idCto = capturar(/CTO Reservada:\s*(.*)/i);
+    if (!idCto || idCto === ".") idCto = capturar(/CTO a validar:\s*(.*)/i);
 
-    const rawLocCto = capturar(/Localização CTO:\s*(.*)/i);
-    const rawLocCliente = capturar(/Coordenadas do Cliente:\s*(.*)/i);
+    // Suporte para Localizações
+    let rawLocCto = capturar(/Localização CTO:\s*(.*)/i);
+    if(!rawLocCto) rawLocCto = capturar(/Localização da CTO:\s*(.*)/i);
+
+    let rawLocCliente = capturar(/Coordenadas do Cliente:\s*(.*)/i);
+    if(!rawLocCliente) rawLocCliente = capturar(/Localização Cliente:\s*(.*)/i);
     
     const locCto = extrairCoordenadasDeTexto(rawLocCto);
     const locCliente = extrairCoordenadasDeTexto(rawLocCliente);
     
+    // Contrato
     const servicoTexto = capturar(/Tipo de Serviço:\s*(.*)/i);
-    const contratoMatch = servicoTexto.match(/\((\d+)\)/);
+    const contratoMatch = servicoTexto ? servicoTexto.match(/\((\d+)\)/) : null;
     const contrato = contratoMatch ? contratoMatch[1] : "";
 
-    const qtdPortasTexto = capturar(/Quantidade de portas:\s*(\d+)/i);
+    // Modelo de Portas
+    let qtdPortasTexto = capturar(/Quantidade de portas:\s*(\d+)/i);
+    if(!qtdPortasTexto) qtdPortasTexto = capturar(/Portas da CTO:\s*(\d+)/i);
     const modeloSelecionado = (qtdPortasTexto === "8") ? "8 PORTAS" : "16 PORTAS";
 
     aba.querySelector('.at_chat').value = chat;
@@ -670,12 +684,10 @@ function processarScriptIndividual(abaId) {
     campoLocCto.value = locCto;
     if(locCto) monitorarCoordenadas(abaId, locCto, campoLocCto);
 
-    // LÓGICA DE COORDENADAS DO CLIENTE
     if (locCliente) {
         campoLocCli.value = locCliente;
         monitorarCoordenadas(abaId, locCliente, campoLocCli);
     } else if (endereco) {
-        // Se não tem coordenada mas tem endereço, tenta buscar
         buscarCoordenadasPorEndereco(abaId, endereco);
     }
 
@@ -683,13 +695,15 @@ function processarScriptIndividual(abaId) {
     selectModelo.value = modeloSelecionado;
     atualizarInterfaceAT(abaId, modeloSelecionado);
 
+    // Processamento de Portas (Lê "Porta X" ou "IDENTIFICAÇÃO PORTA X")
     const qtdNum = parseInt(modeloSelecionado);
     for(let i=1; i<=qtdNum; i++){
-        const rPorta = new RegExp("Porta " + i + ":\\s*(.*)", "i");
-        let v = capturar(rPorta);
+        let v = capturar(new RegExp("Porta " + i + ":\\s*(.*)", "i"));
+        if(!v) v = capturar(new RegExp("IDENTIFICAÇÃO PORTA " + i + ":\\s*(.*)", "i"));
+        
         const input = aba.querySelector(`.pt${i}`);
         if(input) {
-            input.value = validarIdentificacaoPorta(v) === "SEM ID" ? "" : v;
+            input.value = (validarIdentificacaoPorta(v) === "SEM ID" || v.includes("{{")) ? "" : v;
         }
     }
 
