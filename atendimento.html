@@ -2,50 +2,49 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Registro de Atendimento - Pro v2.6</title>
+    <title>Registro de Atendimento - Pro v3.5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --bg-body: #090d16; 
-            --bg-container: #111827; 
-            --bg-card: #1f2937;
-            --input-bg: #0f172a;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --border-color: #374151; 
-            --header-color: #60a5fa;
-            --accent-green: #10b981; 
-            --accent-red: #ef4444;
-            --accent-orange: #f59e0b; 
-            --accent-purple: #8b5cf6;
-            --soft-error: rgba(239, 68, 68, 0.15);
-            --soft-error-border: #ef4444;
-            --radius-lg: 16px;
+            --bg-body: #0b0f19; 
+            --bg-container: #131b2e; 
+            --bg-card: #1e2942;
+            --input-bg: #0f1424;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #29354f; 
+            --header-color: #38bdf8;
+            --accent-green: #34d399; 
+            --accent-red: #f87171;
+            --accent-orange: #fbbf24; 
+            --accent-purple: #a78bfa;
+            --soft-error: rgba(248, 113, 113, 0.1);
+            --soft-error-border: #f87171;
+            --radius-lg: 14px;
             --radius-md: 10px;
-            --radius-sm: 6px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-sm: 8px;
+            --transition: all 0.2s ease-in-out;
         }
 
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
+            font-family: 'Inter', sans-serif; 
             background-color: var(--bg-body); 
             padding: 30px 20px; 
             color: var(--text-main); 
             margin: 0; 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: -0.2px;
         }
 
         .container { 
-            max-width: 1500px; 
+            max-width: 1550px; 
             margin: auto; 
             background: var(--bg-container); 
-            padding: 30px; 
+            padding: 35px; 
             border-radius: var(--radius-lg); 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
             border: 1px solid var(--border-color); 
             position: relative; 
         }
@@ -57,31 +56,31 @@
         }
 
         @keyframes pulse-soft {
-            from { box-shadow: 0 0 2px rgba(239, 68, 68, 0.2); }
-            to { box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
+            from { box-shadow: 0 0 4px rgba(248, 113, 113, 0.1); }
+            to { box-shadow: 0 0 12px rgba(248, 113, 113, 0.25); }
         }
 
         .tabs-nav { 
             display: flex; 
-            gap: 8px; 
-            margin-bottom: 25px; 
+            gap: 6px; 
+            margin-bottom: 30px; 
             align-items: center; 
             overflow-x: auto; 
             padding: 6px;
-            background: #0f172a;
+            background: var(--input-bg);
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
         }
 
         .tab-btn { 
-            padding: 10px 20px; 
+            padding: 10px 18px; 
             cursor: pointer; 
             background: transparent; 
             color: var(--text-muted); 
             border: none;
             border-radius: var(--radius-sm); 
             font-weight: 600; 
-            font-size: 12px;
+            font-size: 13px;
             display: flex; 
             align-items: center; 
             gap: 8px; 
@@ -91,27 +90,27 @@
 
         .tab-btn:hover {
             color: var(--text-main);
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.04);
         }
 
         .tab-btn.active { 
             background: var(--bg-card); 
             color: var(--header-color); 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .btn-close-tab { 
-            font-size: 11px; 
-            opacity: 0.5; 
+            font-size: 10px; 
+            opacity: 0.4; 
             transition: var(--transition); 
-            padding: 2px 6px; 
+            padding: 2px 5px; 
             border-radius: 4px; 
         }
 
         .btn-close-tab:hover { 
             opacity: 1; 
-            background: var(--accent-red); 
-            color: white; 
+            background: rgba(248, 113, 113, 0.2); 
+            color: var(--accent-red); 
         }
         
         .btn-add-tab { 
@@ -119,12 +118,12 @@
             color: var(--accent-green); 
             border: 1px solid var(--border-color); 
             border-radius: var(--radius-sm); 
-            width: 36px; 
-            height: 36px; 
+            width: 38px; 
+            height: 38px; 
             cursor: pointer; 
-            font-weight: bold; 
-            font-size: 18px; 
-            margin-left: 8px; 
+            font-weight: 500; 
+            font-size: 20px; 
+            margin-left: 6px; 
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -133,60 +132,61 @@
         }
 
         .btn-add-tab:hover {
-            background: var(--accent-green);
-            color: white;
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--accent-green);
             border-color: var(--accent-green);
         }
         
         .tab-content { 
             display: none; 
-            animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
         .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
 
         #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
         .toast { 
-            background: #10b981; 
-            color: white; 
-            padding: 16px 24px; 
+            background: var(--bg-card); 
+            color: var(--text-main); 
+            padding: 16px 22px; 
             border-radius: var(--radius-md); 
-            font-weight: 700; 
-            font-size: 12px; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); 
+            font-weight: 600; 
+            font-size: 13px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); 
             display: flex; 
             align-items: center; 
             gap: 12px; 
+            border-left: 4px solid var(--accent-green);
             animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1), fadeOut 0.4s ease 2.6s forwards; 
         }
 
         @keyframes slideIn { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; transform: translateY(20px); } }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 10000; }
-        .modal-card { background: var(--bg-container); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 30px; width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: zoomIn 0.25s ease; }
-        .modal-card h2 { color: var(--accent-red); margin-top: 0; font-size: 18px; font-weight: 800; }
-        .modal-card p { color: var(--text-muted); font-size: 13px; margin: 16px 0 24px 0; line-height: 1.6; text-transform: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 8, 16, 0.8); backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; z-index: 10000; }
+        .modal-card { background: var(--bg-container); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 30px; width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: zoomIn 0.2s ease; }
+        .modal-card h2 { color: var(--accent-red); margin-top: 0; font-size: 18px; font-weight: 700; }
+        .modal-card p { color: var(--text-muted); font-size: 14px; margin: 14px 0 24px 0; line-height: 1.5; }
         .modal-btns { display: flex; gap: 10px; justify-content: center; }
-        .btn-modal { padding: 12px 20px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-weight: 700; font-size: 12px; text-transform: uppercase; transition: var(--transition); flex: 1; }
-        .btn-modal-confirm { background: var(--accent-red); color: white; }
-        .btn-modal-confirm:hover { background: #dc2626; }
+        .btn-modal { padding: 12px 20px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-weight: 600; font-size: 13px; transition: var(--transition); flex: 1; }
+        .btn-modal-confirm { background: var(--accent-red); color: var(--bg-body); }
+        .btn-modal-confirm:hover { background: #ef4444; }
         .btn-modal-cancel { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); }
-        .btn-modal-cancel:hover { background: #374151; }
+        .btn-modal-cancel:hover { background: #29354f; }
 
-        .grid-main { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 30px; }
+        .grid-main { display: grid; grid-template-columns: 1.10fr 0.90fr; gap: 30px; }
         
         .card-panel {
             background: var(--bg-card);
-            padding: 24px;
+            padding: 26px;
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .import-box {
-            background: #111827;
+            background: var(--input-bg);
             border: 1px dashed var(--border-color);
             border-radius: var(--radius-md);
             padding: 16px;
@@ -194,54 +194,54 @@
             transition: var(--transition);
         }
         .import-box[open] { border-style: solid; border-color: var(--accent-purple); }
-        .import-box summary { font-weight: 700; font-size: 12px; cursor: pointer; color: var(--text-muted); outline: none; }
+        .import-box summary { font-weight: 600; font-size: 13px; cursor: pointer; color: var(--text-muted); outline: none; }
         
-        .input-group { margin-bottom: 14px; position: relative; }
-        .input-group label { font-size: 11px; font-weight: 700; margin-bottom: 6px; display: block; color: var(--text-muted); }
+        .input-group { margin-bottom: 16px; position: relative; }
+        .input-group label { font-size: 12px; font-weight: 600; margin-bottom: 8px; display: block; color: var(--text-muted); }
         
         input, select, textarea { 
             width: 100%; 
-            padding: 11px 14px; 
+            padding: 12px 14px; 
             border: 1px solid var(--border-color); 
             border-radius: var(--radius-sm); 
             background: var(--input-bg); 
             color: var(--text-main); 
-            font-size: 12px; 
+            font-size: 13px; 
             font-family: inherit;
             box-sizing: border-box; 
             outline: none; 
-            text-transform: uppercase; 
             transition: var(--transition); 
         }
         input:focus, select:focus, textarea:focus {
             border-color: var(--header-color);
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
         }
         
-        .btn-open-link { position: absolute; right: 8px; top: 22px; background: var(--accent-orange); border: none; border-radius: 4px; color: white; padding: 4px 8px; cursor: pointer; font-size: 11px; display: none; z-index: 5; }
+        .btn-open-link { position: absolute; right: 8px; top: 26px; background: rgba(251, 191, 36, 0.15); border: 1px solid var(--accent-orange); border-radius: 6px; color: var(--accent-orange); padding: 5px 10px; cursor: pointer; font-size: 12px; display: none; z-index: 5; transition: var(--transition); }
+        .btn-open-link:hover { background: var(--accent-orange); color: var(--bg-body); }
 
-        .at_endereco_completo_click { background: #111827; border: 1px solid rgba(16, 185, 129, 0.4); color: #fff; font-weight: 600; cursor: pointer; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .at_endereco_completo_click:hover { background: #0f172a; border-color: var(--accent-green); }
+        .at_endereco_completo_click { background: var(--input-bg); border: 1px solid rgba(52, 211, 153, 0.25); color: #fff; font-weight: 500; cursor: pointer; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .at_endereco_completo_click:hover { background: rgba(52, 211, 153, 0.05); border-color: var(--accent-green); }
 
-        .saturada-container { background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); padding: 24px; margin-top: 25px; display: none; }
+        .saturada-container { background: rgba(248, 113, 113, 0.03); border: 1px solid rgba(248, 113, 113, 0.2); border-radius: var(--radius-md); padding: 26px; margin-top: 25px; display: none; }
         .saturada-container.active { display: block; animation: fadeIn 0.3s ease; }
 
         .map-container { 
-            height: 200px; 
+            height: 220px; 
             width: 100%; 
             border-radius: var(--radius-md); 
             border: 1px solid var(--border-color); 
-            margin: 12px 0; 
+            margin: 14px 0; 
             z-index: 1;
-            filter: grayscale(1) invert(1) contrast(1.1) brightness(0.9);
+            filter: grayscale(1) invert(0.93) contrast(1.2) brightness(0.95);
         }
 
         .portas-container { 
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
-            gap: 8px; 
-            background: #111827; 
-            padding: 16px; 
+            gap: 10px; 
+            background: var(--input-bg); 
+            padding: 18px; 
             border-radius: var(--radius-md); 
             border: 1px solid var(--border-color); 
         }
@@ -249,44 +249,46 @@
             display: flex; 
             align-items: center; 
             gap: 10px; 
-            font-size: 11px; 
-            font-weight: 700; 
+            font-size: 12px; 
+            font-weight: 600; 
             background: var(--bg-card);
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: var(--radius-sm);
             border: 1px solid transparent;
         }
-        .porta-item span { color: var(--text-muted); width: 24px; }
-        .porta-item input { height: 32px; padding: 4px 8px; background: #0f172a; }
+        .porta-item span { color: var(--text-muted); width: 28px; font-family: 'JetBrains Mono', monospace; }
+        .porta-item input { height: 34px; padding: 4px 10px; background: var(--input-bg); border-color: rgba(255,255,255,0.05); }
+        .porta-vaga { border-color: rgba(52, 211, 153, 0.2) !important; background: rgba(52, 211, 153, 0.02) !important; }
+        .porta-vaga span { color: var(--accent-green) !important; }
         
         .porta-conflito { 
             border: 1px solid var(--accent-orange) !important; 
-            background: rgba(245, 158, 11, 0.1) !important;
+            background: rgba(251, 191, 36, 0.08) !important;
         }
 
         .resumo-atendimento {
-            margin-top: 20px;
-            padding: 16px;
-            background: #111827;
+            margin-top: 24px;
+            padding: 18px;
+            background: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
         }
         .resumo-atendimento h4 {
             color: var(--text-muted);
-            margin: 0 0 14px 0;
-            font-size: 11px;
+            margin: 0 0 16px 0;
+            font-size: 12px;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             text-align: center;
         }
         .resumo-grid { 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); 
-            gap: 8px; 
+            gap: 10px; 
         }
         .resumo-item {
             background: var(--bg-card);
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border-color);
             display: flex;
@@ -295,14 +297,14 @@
             position: relative;
             cursor: pointer;
             transition: var(--transition);
-            min-height: 44px;
+            min-height: 48px;
         }
-        .resumo-item:hover { background: #2d3748; border-color: var(--header-color); }
-        .resumo-label { color: var(--text-muted); display: block; margin-bottom: 2px; font-size: 9px; font-weight: 700; pointer-events: none; }
+        .resumo-item:hover { background: #253352; border-color: var(--header-color); }
+        .resumo-label { color: var(--text-muted); display: block; margin-bottom: 3px; font-size: 10px; font-weight: 700; pointer-events: none; }
         .resumo-valor {
             color: #ffffff;
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 12px;
+            font-weight: 600;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -311,117 +313,120 @@
         }
         .resumo-item.orange .resumo-valor { color: var(--accent-orange); }
         .resumo-item.full-width { grid-column: span 3; }
-        .copy-icon-small { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 10px; opacity: 0; transition: var(--transition); }
-        .resumo-item:hover .copy-icon-small { opacity: 0.6; color: var(--header-color); }
+        .copy-icon-small { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; opacity: 0; transition: var(--transition); }
+        .resumo-item:hover .copy-icon-small { opacity: 0.7; color: var(--header-color); }
 
         .btn-icon-small { 
-            background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; 
-            padding: 4px; border-radius: 4px; transition: var(--transition); display: inline-flex; align-items: center;
+            background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; font-size: 13px; 
+            padding: 6px; border-radius: 6px; transition: var(--transition); display: inline-flex; align-items: center;
         }
-        .btn-icon-small:hover { color: var(--accent-purple); background: rgba(255,255,255,0.05); }
+        .btn-icon-small:hover { color: var(--accent-purple); border-color: var(--accent-purple); background: rgba(167, 139, 250, 0.05); }
 
         .btn-group { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
         
         .btn-primary { 
             background: var(--header-color); 
-            color: #0f172a; 
-            padding: 13px 20px; 
+            color: var(--bg-body); 
+            padding: 14px 22px; 
             border: none; 
             border-radius: var(--radius-sm); 
             font-weight: 700; 
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer; 
             flex: 1.3; 
-            text-transform: uppercase; 
             transition: var(--transition); 
-            box-shadow: 0 4px 6px -1px rgba(96, 165, 250, 0.2);
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
         }
-        .btn-primary:hover { background: #93c5fd; transform: translateY(-1px); }
+        .btn-primary:hover { background: #7dd3fc; transform: translateY(-1px); }
         
         .btn-finish { 
             background: var(--accent-green); 
-            color: #0f172a; 
+            color: var(--bg-body); 
             border: none; 
             border-radius: var(--radius-sm); 
             font-weight: 700; 
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer; 
-            padding: 13px 20px; 
+            padding: 14px 22px; 
             flex: 1; 
             transition: var(--transition); 
+            box-shadow: 0 4px 14px rgba(52, 211, 153, 0.15);
         }
-        .btn-finish:hover { background: #34d399; transform: translateY(-1px); }
+        .btn-finish:hover { background: #6ee7b7; transform: translateY(-1px); }
 
         .btn-sat-toggle { 
             background: transparent; 
             color: var(--accent-orange); 
-            border: 1px solid rgba(245, 158, 11, 0.4); 
+            border: 1px solid rgba(251, 191, 36, 0.3); 
             border-radius: var(--radius-sm); 
             font-weight: 600; 
-            font-size: 11px;
+            font-size: 12px;
             cursor: pointer; 
-            padding: 13px 16px; 
+            padding: 14px 18px; 
             flex: 0.9; 
             transition: var(--transition);
         }
-        .btn-sat-toggle:hover { background: rgba(245, 158, 11, 0.06); border-color: var(--accent-orange); }
+        .btn-sat-toggle:hover { background: rgba(251, 191, 36, 0.05); border-color: var(--accent-orange); }
 
         .btn-clear { 
             background: transparent; 
             color: var(--text-muted); 
-            width: 48px; 
+            width: 50px; 
             border: 1px solid var(--border-color); 
             border-radius: var(--radius-sm); 
             cursor: pointer; 
             transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
         }
-        .btn-clear:hover { background: #374151; color: var(--accent-red); }
+        .btn-clear:hover { background: rgba(248, 113, 113, 0.05); border-color: var(--accent-red); color: var(--accent-red); }
 
         .btn-copy { 
-            background: #111827; 
+            background: rgba(52, 211, 153, 0.05); 
             color: var(--accent-green); 
-            border: 1px solid var(--accent-green);
+            border: 1px solid rgba(52, 211, 153, 0.4);
             display: none; 
-            margin-top: 14px; 
+            margin-top: 16px; 
             width: 100%; 
-            padding: 13px; 
+            padding: 14px; 
             border-radius: var(--radius-sm); 
             font-weight: 700; 
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer; 
             transition: var(--transition);
         }
-        .btn-copy:hover { background: rgba(16, 185, 129, 0.08); }
+        .btn-copy:hover { background: rgba(52, 211, 153, 0.12); border-color: var(--accent-green); }
 
         .script-output { 
-            background: #090d16; 
-            color: #34d399; 
-            padding: 20px; 
+            background: var(--input-bg); 
+            color: #a7f3d0; 
+            padding: 22px; 
             border-radius: var(--radius-md); 
             font-family: 'JetBrains Mono', monospace; 
             display: none; 
             white-space: pre-wrap; 
             border: 1px solid var(--border-color);
-            font-size: 12px; 
-            margin-top: 16px; 
-            text-transform: none;
+            font-size: 13px; 
+            margin-top: 18px; 
             line-height: 1.6;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.6);
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.3);
         }
-        .sat-output { color: #f472b6; }
+        .sat-output { color: #fbcfe8; }
 
-        .history-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        .history-table th, .history-table td { padding: 14px; border: 1px solid var(--border-color); text-align: left; }
-        .history-table th { background: #111827; color: var(--header-color); font-weight: 700; }
+        .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .history-table th, .history-table td { padding: 14px 16px; border: 1px solid var(--border-color); text-align: left; }
+        .history-table th { background: var(--input-bg); color: var(--header-color); font-weight: 600; }
         .history-table tr { transition: var(--transition); }
-        .history-table tr:hover { background: rgba(255,255,255,0.01); }
-        .btn-action { padding: 6px 10px; cursor: pointer; border-radius: 4px; border: none; color: white; margin-right: 4px; font-size: 11px; }
+        .history-table tr:hover { background: rgba(255, 255, 255, 0.02); }
+        .btn-action { padding: 6px 12px; cursor: pointer; border-radius: 6px; border: none; color: white; margin-right: 4px; font-size: 12px; transition: var(--transition); }
 
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 30px; }
         .metric-card { 
-            background: #111827; 
+            background: var(--input-bg); 
             border: 1px solid var(--border-color); 
-            padding: 16px; 
+            padding: 18px; 
             border-radius: var(--radius-md); 
             text-align: center; 
             position: relative;
@@ -430,8 +435,11 @@
         .metric-card::after {
             content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: var(--accent-purple);
         }
-        .metric-day { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; }
-        .metric-qty { font-size: 22px; font-weight: 800; color: var(--text-main); }
+        .metric-day { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+        .metric-qty { font-size: 24px; font-weight: 700; color: var(--text-main); }
+        
+        .hist-summary-badges { display: flex; gap: 12px; margin-bottom: 15px; font-size: 12px; font-weight: 600; }
+        .badge-info { background: rgba(56, 189, 248, 0.1); color: var(--header-color); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2); }
     </style>
 </head>
 <body>
@@ -458,9 +466,14 @@
     <div id="at-area"></div>
 
     <div id="tab-historico" class="tab-content">
-        <h3 style="color:var(--accent-green); font-weight: 800; margin-bottom: 16px;">🗄️ RESUMO DOS ÚLTIMOS 7 DIAS</h3>
+        <h3 style="color:var(--accent-green); font-weight: 700; margin-bottom: 18px;">🗄️ RESUMO DOS ÚLTIMOS 7 DIAS</h3>
         <div class="metrics-grid" id="metrics-daily"></div>
-        <input type="text" id="inputBusca" style="margin-bottom:20px; padding:14px; background: var(--bg-card);" placeholder="🔍 BUSCAR NO HISTÓRICO..." onkeyup="filtrarHistorico()">
+        
+        <div class="hist-summary-badges">
+            <div class="badge-info" id="badge-total-atend">Total de Atendimentos: 0</div>
+        </div>
+
+        <input type="text" id="inputBusca" style="margin-bottom:20px; padding:14px; background: var(--bg-card);" placeholder="🔍 BUSCAR NO HISTÓRICO (CHAT, OS, CTO, OBS...)" onkeyup="filtrarHistorico()">
         <div style="overflow-x: auto; background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
             <table class="history-table" id="tabelaHist">
                 <thead>
@@ -479,6 +492,7 @@ let abaCount = 0;
 let idParaRemover = null;
 let timerBuscaCidade = {};
 let mapasAtivos = {};
+let nomeOriginalAbas = {};
 
 window.onload = function() {
     adicionarNovaAba();
@@ -487,9 +501,10 @@ window.onload = function() {
 
 function showToast(msg, color = 'var(--accent-green)') {
     const container = document.getElementById('toast-container');
+    if(!container) return;
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.style.background = color;
+    toast.style.borderLeftColor = color;
     toast.innerHTML = `<span>📂</span> ${msg}`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
@@ -524,6 +539,58 @@ function filtrarHistorico() {
     document.querySelectorAll('#tabelaHist tbody tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(v) ? '' : 'none');
 }
 
+function atualizarNomeAbaDinamico(abaId, valorCto) {
+    const btnAba = document.getElementById(`btn-${abaId}`);
+    if (!btnAba) return;
+
+    const nAba = abaId.replace('tab-at-', '');
+    const ctoLimpa = valorCto ? valorCto.toUpperCase().trim() : "";
+    
+    const botaoFechar = parseInt(nAba) > 1 ? `<span class="btn-close-tab" onclick="fecharAba(event, '${abaId}')">✖</span>` : '';
+    
+    if (ctoLimpa !== "") {
+        btnAba.innerHTML = `📝 ${ctoLimpa} ${botaoFechar}`;
+    } else {
+        btnAba.innerHTML = `📝 ATEND. ${nAba} ${botaoFechar}`;
+    }
+}
+
+function salvarRascunhoForm(abaId) {
+    const aba = document.getElementById(abaId);
+    if (!aba) return;
+    const fields = aba.querySelectorAll('input, select, textarea');
+    let rascunho = {};
+    fields.forEach(f => {
+        if(f.className && f.type !== 'hidden') {
+            const cls = f.className.split(' ')[0];
+            rascunho[cls] = f.value;
+        }
+    });
+    localStorage.setItem(`rascunho_${abaId}`, JSON.stringify(rascunho));
+}
+
+function restaurarRascunhoForm(abaId) {
+    const dataStr = localStorage.getItem(`rascunho_${abaId}`);
+    if(!dataStr) return;
+    try {
+        const rascunho = JSON.parse(dataStr);
+        const aba = document.getElementById(abaId);
+        Object.keys(rascunho).forEach(cls => {
+            const el = aba.querySelector('.' + cls);
+            if(el) {
+                el.value = rascunho[cls];
+                if(cls === 'at_modelo_cto') {
+                    atualizarInterfaceAT(abaId, rascunho[cls]);
+                }
+            }
+        });
+    } catch(e){}
+}
+
+function limparRascunhoForm(abaId) {
+    localStorage.removeItem(`rascunho_${abaId}`);
+}
+
 function validarCamposTempoReal(abaId) {
     const aba = document.getElementById(abaId);
     if (!aba) return;
@@ -535,6 +602,7 @@ function validarCamposTempoReal(abaId) {
             else { campo.classList.remove('input-error'); }
         }
     });
+    salvarRascunhoForm(abaId);
 }
 
 function validarIdentificacaoPorta(valor) {
@@ -609,24 +677,24 @@ function adicionarNovaAba() {
         <input type="hidden" class="at_id_reg" value="">
         <details class="import-box" open>
             <summary>📥 IMPORTAR SCRIPT DE CAMPO</summary>
-            <textarea class="at_import_texto" style="height: 100px; text-transform: none; margin-top:10px; background: #0f172a;" placeholder="COLE O SCRIPT DO TÉCNICO AQUI..."></textarea>
-            <button class="btn-primary" style="background: var(--accent-purple); color: white; margin-top:12px; padding:10px; box-shadow:none;" onclick="processarScriptIndividual('${id}')">PROCESSAR DADOS</button>
+            <textarea class="at_import_texto" style="height: 100px; margin-top:12px; background: var(--input-bg);" placeholder="COLE O SCRIPT DO TÉCNICO AQUI..."></textarea>
+            <button class="btn-primary" style="background: var(--accent-purple); color: var(--bg-body); margin-top:14px; padding:11px; box-shadow:none;" onclick="processarScriptIndividual('${id}')">PROCESSAR DADOS</button>
         </details>
         <div class="grid-main">
             <div class="card-panel">
-                <h3 style="color:var(--header-color); margin: 0 0 20px 0; font-weight:800; font-size:15px;">📋 REGISTRO DE ATENDIMENTO</h3>
+                <h3 style="color:var(--header-color); margin: 0 0 20px 0; font-weight:700; font-size:16px;">📋 REGISTRO DE ATENDIMENTO</h3>
                 
-                <div class="input-group" style="margin-bottom: 18px;">
+                <div class="input-group" style="margin-bottom: 20px;">
                     <label style="color: var(--accent-green);">📍 ENDEREÇO DO CLIENTE (CLIQUE PARA MAPA POP-UP)</label>
                     <input type="text" class="at_endereco_completo at_endereco_completo_click" value="AGUARDANDO COORDENADAS..." readonly onclick="abrirPopUpEndereco('${id}')">
                 </div>
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;" oninput="validarCamposTempoReal('${id}')">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;" oninput="validarCamposTempoReal('${id}')">
                     <div class="input-group"><label>ID CHAT</label><input type="text" class="at_chat" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="at_os" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group"><label>CONTRATO CLIENTE</label><input type="text" class="at_contrato" oninput="sincronizarPortaAuto('${id}')"></div>
                     <div class="input-group"><label>NOME COMPLETO CLIENTE</label><input type="text" class="at_nome_cli" oninput="sincronizarPortaAuto('${id}')"></div>
-                    <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value); sincronizarResumo('${id}');"></div>
+                    <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value); sincronizarResumo('${id}'); atualizarNomeAbaDinamico('${id}', this.value);"></div>
                     <div class="input-group" style="grid-column:span 2"><label>CAMINHO DE REDE CTO</label><input type="text" class="at_caminho_rede"></div>
                     <div class="input-group" style="grid-column:span 2">
                         <label>MODELO CTO</label>
@@ -663,7 +731,7 @@ function adicionarNovaAba() {
             </div>
             <div>
                 <div class="card-panel" style="height: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
-                    <h3 style="margin: 0 0 20px 0; font-weight:800; font-size:15px; display: flex; align-items: center; justify-content: space-between;">🔌 MAPEAR PORTAS <button class="btn-icon-small" title="Copiar Mapa de Portas" onclick="copiarSomentePortas('${id}')">📋</button></h3>
+                    <h3 style="margin: 0 0 20px 0; font-weight:700; font-size:16px; display: flex; align-items: center; justify-content: space-between;">🔌 MAPEAR PORTAS <button class="btn-icon-small" title="Copiar Mapa de Portas" onclick="copiarSomentePortas('${id}')">📋</button></h3>
                     <div class="portas-container" id="grid-${id}" style="flex-grow: 1; align-content: start;"></div>
                     <div class="resumo-atendimento">
                         <h4>🔍 RESUMO OPERACIONAL</h4>
@@ -684,9 +752,9 @@ function adicionarNovaAba() {
         </div>
 
         <div id="sat-form-${id}" class="saturada-container">
-            <h3 style="color:var(--accent-red); margin: 0 0 20px 0; font-weight:800; font-size:14px;">🚫 RELATÓRIO DE CTO SATURADA</h3>
+            <h3 style="color:var(--accent-red); margin: 0 0 20px 0; font-weight:700; font-size:15px;">🚫 RELATÓRIO DE CTO SATURADA</h3>
             <div class="grid-main">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
                     <div class="input-group"><label>BKO RESPONSÁVEL</label><input type="text" class="sat_bko" value="CAIO BRANDÃO"></div>
                     <div class="input-group"><label>DATA</label><input type="text" class="sat_data"></div>
                     <div class="input-group"><label>CIDADE/UF</label><input type="text" class="sat_cidade" oninput="sincronizarResumo('${id}')"></div>
@@ -707,7 +775,7 @@ function adicionarNovaAba() {
                     </div>
                     <div id="map-${id}" class="map-container"></div>
                     
-                    <button class="btn-primary" style="background: var(--accent-orange); color: #0f172a; width:100%; margin-top:10px; box-shadow:none;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO TÉCNICO</button>
+                    <button class="btn-primary" style="background: var(--accent-orange); color: var(--bg-body); width:100%; margin-top:10px; box-shadow:none;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR RELATÓRIO TÉCNICO</button>
                 </div>
             </div>
             <div class="script-output sat-output"></div>
@@ -718,6 +786,8 @@ function adicionarNovaAba() {
     document.getElementById('at-area').insertAdjacentHTML('beforeend', html);
     atualizarInterfaceAT(id, "16 PORTAS");
     document.getElementById(id).querySelector('.sat_data').value = new Date().toLocaleDateString('pt-BR');
+    
+    restaurarRascunhoForm(id);
     validarCamposTempoReal(id);
     showTab(id, btn);
 }
@@ -725,7 +795,11 @@ function adicionarNovaAba() {
 function atualizarMetricas() {
     const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     const metricasDiv = document.getElementById('metrics-daily');
+    const badgeTotal = document.getElementById('badge-total-atend');
+    
+    if(badgeTotal) badgeTotal.innerText = `Total de Atendimentos: ${hist.length}`;
     if (!metricasDiv) return;
+
     const contagemDias = {};
     for (let i = 0; i < 7; i++) {
         const d = new Date(); d.setDate(d.getDate() - i);
@@ -787,19 +861,29 @@ function sincronizarResumo(abaId) {
     aba.querySelector('.res-cidade').innerText = get('sat_cidade') || '-';
     aba.querySelector('.res-loc-cto').innerText = get('sat_loc_cto_ordem') || '-';
     aba.querySelector('.res-loc-cli').innerText = get('sat_loc_cli') || '-';
+    
     const modelo = parseInt(aba.querySelector('.at_modelo_cto').value);
     for(let i=1; i<=modelo; i++){
         const inputPorta = aba.querySelector(`.pt${i}`);
         if(inputPorta) {
             const val = inputPorta.value.toUpperCase().trim();
+            const pItem = inputPorta.parentElement;
+            
+            if(val === "" || val === "SEM ID") {
+                pItem.classList.add('porta-vaga');
+            } else {
+                pItem.classList.remove('porta-vaga');
+            }
+
             if(idPortaRetirada !== "" && val !== "" && val === idPortaRetirada) inputPorta.classList.add('porta-conflito');
             else inputPorta.classList.remove('porta-conflito');
         }
     }
     atualizarMarcadoresMapa(abaId);
+    salvarRascunhoForm(abaId);
 }
 
-function abrirPopUpCentralizado(url, titulo, largura = 900, altura = 650) {
+function abrirPopUpCentralizado(url, titulo, largura = 950, altura = 680) {
     const esquerda = (screen.width - largura) / 2;
     const topo = (screen.height - altura) / 2;
     window.open(url, titulo, `width=${largura},height=${altura},top=${topo},left=${esquerda},scrollbars=yes,status=no,toolbar=no,location=no,menubar=no`);
@@ -886,22 +970,6 @@ async function buscarCoordenadasPorEndereco(abaId, endereco) {
             campoLocCli.value = `${lat},${lon}`;
             showToast("COORDENADAS OBTIDAS VIA ENDEREÇO!");
             monitorarCoordenadas(abaId, `${lat},${lon}`, campoLocCli);
-        } else {
-            const partes = endereco.split(',');
-            if(partes.length > 1) {
-                const buscaSimples = `${partes[0].trim()}, ${partes[1].split('-')[0].trim()}`;
-                const responseFallback = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(buscaSimples)}&limit=1`);
-                const dataFallback = await responseFallback.json();
-                if (dataFallback && dataFallback.length > 0) {
-                    const lat = dataFallback[0].lat;
-                    const lon = dataFallback[0].lon;
-                    const aba = document.getElementById(abaId);
-                    const campoLocCli = aba.querySelector('.sat_loc_cli');
-                    campoLocCli.value = `${lat},${lon}`;
-                    showToast("COORDENADAS OBTIDAS POR ENDEREÇO REDUZIDO!");
-                    monitorarCoordenadas(abaId, `${lat},${lon}`, campoLocCli);
-                }
-            }
         }
     } catch (e) { console.error("Erro ao buscar coordenadas:", e); }
 }
@@ -957,12 +1025,12 @@ function processarScriptIndividual(abaId) {
 
     let chat = capturar(/ID Chat:\s*(\w+)/i);
     
-    const nomeCli = capturar(/Nome do cliente:\s*(.*)/i);
+    let nomeCli = capturar(/Nome do cliente:\s*(.*)/i);
     const endereco = capturar(/Endereço:\s*(.*)/i);
     
-    let idCto = capturar(/Primeira CTO Validada:\s*(.*)/i);
+    let idCto = capturar(/CTO a validar:\s*(.*)/i);
+    if (!idCto || idCto === ".") idCto = capturar(/Primeira CTO Validada:\s*(.*)/i);
     if (!idCto || idCto === ".") idCto = capturar(/CTO Reservada:\s*(.*)/i);
-    if (!idCto || idCto === ".") idCto = capturar(/CTO a validar:\s*(.*)/i);
 
     let rawLocCto = capturar(/Localização CTO:\s*(.*)/i);
     if(!rawLocCto) rawLocCto = capturar(/Localização da CTO:\s*(.*)/i);
@@ -975,20 +1043,45 @@ function processarScriptIndividual(abaId) {
     
     const servicoTexto = capturar(/Tipo de Serviço:\s*(.*)/i);
     const contratoMatch = servicoTexto ? servicoTexto.match(/\((\d+)\)/) : null;
-    const contrato = contratoMatch ? contratoMatch[1] : "";
+    let contrato = contratoMatch ? contratoMatch[1] : "";
 
     let qtdPortasTexto = capturar(/Quantidade de portas:\s*(\d+)/i);
     if(!qtdPortasTexto) qtdPortasTexto = capturar(/Portas da CTO:\s*(\d+)/i);
     const modeloSelecionado = (qtdPortasTexto === "8") ? "8 PORTAS" : "16 PORTAS";
 
+    const ctoLimpa = limparIdCTO(idCto);
+
+    const selectModelo = aba.querySelector('.at_modelo_cto');
+    selectModelo.value = modeloSelecionado;
+    atualizarInterfaceAT(abaId, modeloSelecionado);
+
+    const qtdNum = parseInt(modeloSelecionado);
+    for(let i=1; i<=qtdNum; i++){
+        let v = capturar(new RegExp("Porta " + i + ":\\s*(.*)", "i"));
+        if(!v) v = capturar(new RegExp("IDENTIFICAÇÃO PORTA " + i + ":\\s*(.*)", "i"));
+        
+        const input = aba.querySelector(`.pt${i}`);
+        if(input) {
+            input.value = (validarIdentificacaoPorta(v) === "SEM ID" || v.includes("{{")) ? "" : v;
+            
+            if(!contrato || !nomeCli) {
+                const parts = input.value.split('-');
+                if(parts.length >= 3 && !input.value.includes("USOU A PORTA")) {
+                    if(!contrato) contrato = parts[1].trim();
+                    if(!nomeCli) nomeCli = parts[2].trim();
+                }
+            }
+        }
+    }
+
     aba.querySelector('.at_chat').value = chat;
     aba.querySelector('.at_os').value = os;
     aba.querySelector('.at_nome_cli').value = nomeCli;
     aba.querySelector('.at_contrato').value = contrato;
-    aba.querySelector('.at_cto').value = limparIdCTO(idCto);
+    aba.querySelector('.at_cto').value = ctoLimpa;
     
     aba.querySelector('.sat_cliente').value = os;
-    aba.querySelector('.sat_ctovald').value = limparIdCTO(idCto);
+    aba.querySelector('.sat_ctovald').value = ctoLimpa;
     
     const campoLocCli = aba.querySelector('.sat_loc_cli');
     const campoLocCto = aba.querySelector('.sat_loc_cto_ordem');
@@ -1003,26 +1096,13 @@ function processarScriptIndividual(abaId) {
         buscarCoordenadasPorEndereco(abaId, endereco);
     }
 
-    const selectModelo = aba.querySelector('.at_modelo_cto');
-    selectModelo.value = modeloSelecionado;
-    atualizarInterfaceAT(abaId, modeloSelecionado);
-
-    const qtdNum = parseInt(modeloSelecionado);
-    for(let i=1; i<=qtdNum; i++){
-        let v = capturar(new RegExp("Porta " + i + ":\\s*(.*)", "i"));
-        if(!v) v = capturar(new RegExp("IDENTIFICAÇÃO PORTA " + i + ":\\s*(.*)", "i"));
-        
-        const input = aba.querySelector(`.pt${i}`);
-        if(input) {
-            input.value = (validarIdentificacaoPorta(v) === "SEM ID" || v.includes("{{")) ? "" : v;
-        }
-    }
-
     puxarCaminhoRedeAutomatico(abaId, idCto);
     aba.querySelector('details').open = false;
+    
     sincronizarResumo(abaId);
+    atualizarNomeAbaDinamico(abaId, ctoLimpa);
     validarCamposTempoReal(abaId);
-    showToast(`DADOS IMPORTADOS (CTO ${modeloSelecionado})`);
+    showToast(`DADOS IMPORTADOS COM SUCESSO`);
 }
 
 function gerarScript(id) {
@@ -1073,6 +1153,7 @@ function salvarAtendimento(id) {
     aba.querySelector('.at_id_reg').value = dados.id_reg;
     btnSave.innerHTML = "✅ SALVO!";
     setTimeout(() => { btnSave.innerHTML = "✅ SALVAR"; }, 2000);
+    limparRascunhoForm(id);
     carregarHistorico();
     showToast("ATENDIMENTO SALVO COM SUCESSO!");
 }
@@ -1085,7 +1166,7 @@ function carregarHistorico() {
             <tr>
                 <td>${r.timestamp || ''}</td><td>${r.chat || ''}</td><td>${r.os || ''}</td><td>${r.cto || ''}</td><td>${r.correcao || ''}</td><td>${r.obs || ''}</td>
                 <td>
-                    <button class="btn-action" style="background:var(--header-color); color:#0f172a; font-weight:700;" onclick="editarRegistro(${r.id_reg})">✏️</button>
+                    <button class="btn-action" style="background:var(--header-color); color:var(--bg-body); font-weight:700;" onclick="editarRegistro(${r.id_reg})">✏️</button>
                     <button class="btn-action" style="background:var(--accent-red)" onclick="abrirModalExcluir(${r.id_reg})">🗑️</button>
                 </td>
             </tr>
@@ -1125,6 +1206,7 @@ function editarRegistro(id) {
     aba.querySelector('.sat_loc_cto_ordem').value = r.sat_loc_cto || '';
     validarCamposTempoReal(abaId);
     sincronizarResumo(abaId);
+    atualizarNomeAbaDinamico(abaId, r.cto || '');
     showTab(abaId, document.getElementById(`btn-${abaId}`));
     showToast("DADOS CARREGADOS!");
 }
@@ -1137,7 +1219,9 @@ function toggleSaturada(id) {
     }
 }
 
-function copiarScript(btn) { navigator.clipboard.writeText(btn.previousElementSibling.innerText).then(() => showToast("COPIADO!")); }
+function copiarScript(btn) { 
+    navigator.clipboard.writeText(btn.previousElementSibling.innerText).then(() => showToast("COPIADO!")); 
+}
 
 function showTab(id, btn) { 
     document.querySelectorAll('.tab-content, .tab-btn').forEach(x => x.classList.remove('active')); 
@@ -1150,8 +1234,9 @@ function showTab(id, btn) {
 
 function fecharAba(e, id) { 
     e.stopPropagation(); 
-    abrirModalPersonalizado("⚠️ FECHAR ABA", "VOCÊ DESEJA FECHAR ESTA ABA?", () => {
+    abrirModalPersonalizado("⚠️ FECHAR ABA", "VOCÊ DESEJA FECHAR ESTA ABA? DADOS NÃO SALVOS SERÃO PERDIDOS.", () => {
         if (mapasAtivos[id]) delete mapasAtivos[id];
+        limparRascunhoForm(id);
         document.getElementById(id).remove(); 
         document.getElementById(`btn-${id}`).remove(); 
         document.querySelectorAll('.tab-btn')[0].click(); 
@@ -1166,7 +1251,10 @@ function limparForm(id) {
         aba.querySelector('.sat_data').value = new Date().toLocaleDateString('pt-BR');
         aba.querySelectorAll('.script-output, .btn-copy').forEach(el => el.style.display = 'none');
         document.getElementById(`sat-form-${id}`).classList.remove('active');
-        sincronizarResumo(id); validarCamposTempoReal(id);
+        limparRascunhoForm(id);
+        sincronizarResumo(id); 
+        validarCamposTempoReal(id);
+        atualizarNomeAbaDinamico(id, '');
         showToast("LIMPO!");
     }, "var(--accent-orange)");
 }
@@ -1176,7 +1264,7 @@ function atualizarInterfaceAT(id, modelo) {
     const sel = document.querySelector(`#${id} .at_plib_id`);
     let o = '<option value="NENHUMA">NENHUMA</option>';
     for(let i=1; i<=qtd; i++){
-        grid.innerHTML += `<div class="porta-item"><span>P${i}</span><input type="text" class="pt${i}" placeholder="ID" oninput="sincronizarResumo('${id}')"></div>`;
+        grid.innerHTML += `<div class="porta-item"><span>P${i.toString().padStart(2, '0')}</span><input type="text" class="pt${i}" placeholder="ID PORTA" oninput="sincronizarResumo('${id}')"></div>`;
         o += `<option value="PORTA ${i}">PORTA ${i}</option>`;
     }
     sel.innerHTML = o;
