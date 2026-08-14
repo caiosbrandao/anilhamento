@@ -302,7 +302,7 @@
         .resumo-item:hover { background: #253352; border-color: var(--header-color); }
         .resumo-label { color: var(--text-muted); display: block; margin-bottom: 3px; font-size: 10px; font-weight: 700; pointer-events: none; }
         .resumo-valor {
-            color: #ffff;
+            color: #ffffff;
             font-size: 12px;
             font-weight: 600;
             overflow: hidden;
@@ -697,27 +697,27 @@ function adicionarNovaAba() {
                     <div class="input-group" style="grid-column:span 2"><label>ID CTO</label><input type="text" class="at_cto" oninput="puxarCaminhoRedeAutomatico('${id}', this.value); sincronizarResumo('${id}'); atualizarNomeAbaDinamico('${id}', this.value);"></div>
                     <div class="input-group" style="grid-column:span 2"><label>CAMINHO DE REDE CTO</label><input type="text" class="at_caminho_rede"></div>
                     <div class="input-group" style="grid-column:span 2">
-                    <label>MODELO CTO</label>
-                    <select class="at_modelo_cto" onchange="atualizarInterfaceAT('${id}', this.value); validarCamposTempoReal('${id}');">
-                    <option value="16 PORTAS">16 PORTAS</option>
-                    <option value="8 PORTAS">8 PORTAS</option>
-                    </select>
+                        <label>MODELO CTO</label>
+                        <select class="at_modelo_cto" onchange="atualizarInterfaceAT('${id}', this.value); validarCamposTempoReal('${id}');">
+                            <option value="16 PORTAS">16 PORTAS</option>
+                            <option value="8 PORTAS">8 PORTAS</option>
+                        </select>
                     </div>
                     <div class="input-group"><label>PORTA UTILIZADA</label><select class="at_plib_id" onchange="sincronizarPortaAuto('${id}')"></select></div>
                     <div class="input-group"><label>ID PORTA RETIRADA</label><input type="text" class="at_plib_num" oninput="sincronizarResumo('${id}')"></div>
                     <div class="input-group" style="grid-column:span 2">
-                    <label>CORREÇÃO DE CAMINHO DA PORTA LIBERADA ?</label>
-                    <select class="at_correcao_caminho"><option value="NAO">NÃO</option><option value="SIM">SIM</option></select>
+                        <label>CORREÇÃO DE CAMINHO DA PORTA LIBERADA ?</label>
+                        <select class="at_correcao_caminho"><option value="NAO">NÃO</option><option value="SIM">SIM</option></select>
                     </div>
                     <div class="input-group" style="grid-column:span 2">
-                    <label>CORREÇÃO / OBSERVAÇÃO</label>
-                    <select class="at_obs_select" onchange="toggleObsManual('${id}', this.value)">
-                    <option value="SEM OBSERVAÇÕES ADICIONAIS.">SELECIONE UMA OPÇÃO...</option>
-                    <option value="CTO MAIS PROXIMA DA CASA DO CLIENTE.">CTO MAIS PROXIMA DA CASA DO CLIENTE.</option>
-                    <option value="USOU A PORTA RESERVADA PARA O CLIENTE">USOU A PORTA RESERVADA PARA O CLIENTE</option>
-                    <option value="MANUAL">OUTRO...</option>
-                    </select>
-                    <textarea class="at_obs_manual" style="display:none; margin-top:10px; height:60px;"></textarea>
+                        <label>CORREÇÃO / OBSERVAÇÃO</label>
+                        <select class="at_obs_select" onchange="toggleObsManual('${id}', this.value)">
+                            <option value="SEM OBSERVAÇÕES ADICIONAIS.">SELECIONE UMA OPÇÃO...</option>
+                            <option value="CTO MAIS PROXIMA DA CASA DO CLIENTE.">CTO MAIS PROXIMA DA CASA DO CLIENTE.</option>
+                            <option value="USOU A PORTA RESERVADA PARA O CLIENTE">USOU A PORTA RESERVADA PARA O CLIENTE</option>
+                            <option value="MANUAL">OUTRO...</option>
+                        </select>
+                        <textarea class="at_obs_manual" style="display:none; margin-top:10px; height:60px;"></textarea>
                     </div>
                 </div>
                 <div class="btn-group">
@@ -735,18 +735,18 @@ function adicionarNovaAba() {
                     <div class="portas-container" id="grid-${id}" style="flex-grow: 1; align-content: start;"></div>
                     
                     <div class="resumo-atendimento">
-                    <h4>🔍 RESUMO OPERACIONAL</h4>
-                    <div class="resumo-grid">
-                    <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span><span class="copy-icon-small">📋</span></div>
-                    <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span><span class="copy-icon-small">📋</span></div>
-                    <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CONTRATO</span><span class="resumo-valor res-contrato">-</span><span class="copy-icon-small">📋</span></div>
-                    <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span><span class="copy-icon-small">📋</span></div>
-                    <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">PORTA RETIRADA</span><span class="resumo-valor res-porta-retirada">-</span><span class="copy-icon-small">📋</span></div>
-                    <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span><span class="copy-icon-small">📋</span></div>
-                    <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span><span class="copy-icon-small">📋</span></div>
-                    <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span><span class="copy-icon-small">📋</span></div>
-                    <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CLIENTE</span><span class="resumo-valor res-loc-cli">-</span><span class="copy-icon-small">📋</span></div>
-                    </div>
+                        <h4>🔍 RESUMO OPERACIONAL</h4>
+                        <div class="resumo-grid">
+                            <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CHAT</span><span class="resumo-valor res-chat">-</span><span class="copy-icon-small">📋</span></div>
+                            <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">O.S.</span><span class="resumo-valor res-os">-</span><span class="copy-icon-small">📋</span></div>
+                            <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CONTRATO</span><span class="resumo-valor res-contrato">-</span><span class="copy-icon-small">📋</span></div>
+                            <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">ID CTO</span><span class="resumo-valor res-cto">-</span><span class="copy-icon-small">📋</span></div>
+                            <div class="resumo-item orange" onclick="copiarValorResumo(this)"><span class="resumo-label">PORTA RETIRADA</span><span class="resumo-valor res-porta-retirada">-</span><span class="copy-icon-small">📋</span></div>
+                            <div class="resumo-item" onclick="copiarValorResumo(this)"><span class="resumo-label">CIDADE/UF</span><span class="resumo-valor res-cidade">-</span><span class="copy-icon-small">📋</span></div>
+                            <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">NOME CLIENTE</span><span class="resumo-valor res-nome">-</span><span class="copy-icon-small">📋</span></div>
+                            <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CTO PRÓXIMA</span><span class="resumo-valor res-loc-cto">-</span><span class="copy-icon-small">📋</span></div>
+                            <div class="resumo-item full-width" onclick="copiarValorResumo(this)"><span class="resumo-label">COORD. CLIENTE</span><span class="resumo-valor res-loc-cli">-</span><span class="copy-icon-small">📋</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -762,17 +762,17 @@ function adicionarNovaAba() {
                     <div class="input-group"><label>ORDEM DE SERVIÇO</label><input type="text" class="sat_cliente"></div>
                     <div class="input-group"><label>CTO VALIDADA</label><input type="text" class="sat_ctovald"></div>
                     <div class="input-group">
-                    <label>COORDENADAS CLIENTE</label>
-                    <input type="text" class="sat_loc_cli" oninput="monitorarCoordenadas('${id}', this.value, this); sincronizarResumo('${id}');">
-                    <button class="btn-open-link" onclick="abrirLinkExterno(this)">🌐</button>
+                        <label>COORDENADAS CLIENTE</label>
+                        <input type="text" class="sat_loc_cli" oninput="monitorarCoordenadas('${id}', this.value, this); sincronizarResumo('${id}');">
+                        <button class="btn-open-link" onclick="abrirLinkExterno(this)">🌐</button>
                     </div>
                     <div class="input-group" style="grid-column: span 2"><label>MOTIVO / PARECER TÉCNICO</label><textarea class="sat_obs" style="height:70px;"></textarea></div>
                 </div>
                 <div>
                     <div class="input-group">
-                    <label>COORDENADAS CTO MAIS PROXIMA</label>
-                    <input type="text" class="sat_loc_cto_ordem" oninput="monitorarCoordenadas('${id}', this.value, this); sincronizarResumo('${id}');">
-                    <button class="btn-open-link" onclick="abrirLinkExterno(this)">🌐</button>
+                        <label>COORDENADAS CTO MAIS PROXIMA</label>
+                        <input type="text" class="sat_loc_cto_ordem" oninput="monitorarCoordenadas('${id}', this.value, this); sincronizarResumo('${id}');">
+                        <button class="btn-open-link" onclick="abrirLinkExterno(this)">🌐</button>
                     </div>
                     <div id="map-${id}" class="map-container"></div>
                     <button class="btn-primary" style="background: var(--accent-orange); color: var(--bg-body); width:100%; margin-top:10px; box-shadow:none;" onclick="gerarScriptSaturada('${id}')">🚀 GERAR SCRIPT SATURADA</button>
@@ -1266,11 +1266,6 @@ function salvarAtendimento(abaId) {
     };
 
     hist.push(itemLog);
-    
-    // Manter apenas os registros dos últimos 7 dias
-    const dataLimite = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 dias em milissegundos
-    hist = hist.filter(x => x.timestamp >= dataLimite);
-    
     localStorage.setItem('atend_logs_v10', JSON.stringify(hist));
     
     limparRascunhoForm(abaId);
@@ -1284,12 +1279,7 @@ function salvarAtendimento(abaId) {
 }
 
 function carregarHistorico() {
-    let hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
-    
-    // Manter apenas os registros dos últimos 7 dias
-    const dataLimite = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 dias em milissegundos
-    hist = hist.filter(x => x.timestamp >= dataLimite);
-    
+    const hist = JSON.parse(localStorage.getItem('atend_logs_v10') || '[]');
     hist.sort((a,b) => b.timestamp - a.timestamp);
     
     const tbody = document.querySelector('#tabelaHist tbody');
